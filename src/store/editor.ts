@@ -25,6 +25,7 @@ export type EditorState = {
   instantTick: number;
   /** Черновик ИИ ждёт решения «оставить / отменить». */
   pendingDraft: boolean;
+  draftNote: string | null;
   toast: string | null;
   loaded: boolean;
 };
@@ -78,6 +79,7 @@ export const useEditor = create<EditorState & Actions>()((set, get) => ({
   canRedo: false,
   instantTick: 0,
   pendingDraft: false,
+  draftNote: null,
   toast: null,
   loaded: false,
 
@@ -122,7 +124,7 @@ export const useEditor = create<EditorState & Actions>()((set, get) => ({
 
   acceptDraft: () => {
     draftBase = null;
-    set({ pendingDraft: false });
+    set({ pendingDraft: false, draftNote: null });
   },
 
   rejectDraft: () => {
@@ -131,12 +133,14 @@ export const useEditor = create<EditorState & Actions>()((set, get) => ({
     draftBase = null;
     // Отмена черновика = шаг отмены, а не новый шаг.
     const r = undoH(history, get().project);
-    if (r && r.state === base) history = r.history;
+    // Отклонённый черновик не возвращается через «Вернуть».
+    if (r && r.state === base) history = { ...r.history, future: [] };
     set((s) => ({
       project: base,
       selection: [],
       activeScreen: fixActive(base, s.activeScreen),
       pendingDraft: false,
+      draftNote: null,
       canUndo: history.past.length > 0,
       canRedo: history.future.length > 0,
       instantTick: s.instantTick + 1,

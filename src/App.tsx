@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
+import { DraftBar } from "./components/ai/AiDialog";
 import { Canvas, fitAll } from "./components/canvas/Canvas";
 import { useHotkeys } from "./components/hotkeys";
 import { Inspector } from "./components/panels/Inspector";
@@ -41,7 +42,10 @@ export function App() {
         {mode === "edit" && <Palette />}
         {mode === "edit" && <FlowMap />}
       </aside>
-      <main className="main">{mode === "run" ? <RunView /> : <Canvas />}</main>
+      <main className="main">
+        {mode === "run" ? <RunView /> : <Canvas />}
+        <DraftBar />
+      </main>
       {mode === "edit" && (
         <aside className={`panel right${tab === "props" ? " open" : ""}`} aria-label="Свойства">
           {hasSelection ? <Inspector /> : <ProjectPanel />}

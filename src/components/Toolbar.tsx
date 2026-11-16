@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { emptyProject } from "../lib/defaults";
 import { resetHistory, useEditor } from "../store/editor";
+import { AiDialog } from "./ai/AiDialog";
 import { DataDialog } from "./data/DataDialog";
 import { ExportDialog } from "./export/ExportDialog";
 import { pickJson, saveJson } from "./files";
@@ -39,6 +40,7 @@ export function Toolbar({ extra }: { extra?: React.ReactNode }) {
   const [menu, setMenu] = useState<null | "file" | "keys">(null);
   const [exporting, setExporting] = useState(false);
   const [dataOpen, setDataOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
   const close = () => setMenu(null);
 
   return (
@@ -63,6 +65,10 @@ export function Toolbar({ extra }: { extra?: React.ReactNode }) {
         <Icon name="db" /> <span className="hide-mobile">Данные</span>
       </button>
       {dataOpen && <DataDialog onClose={() => setDataOpen(false)} />}
+      <button className="btn" disabled={mode === "run"} onClick={() => setAiOpen(true)} title="ИИ: экран по описанию, схема данных, тексты">
+        <Icon name="ai" /> <span className="hide-mobile">ИИ</span>
+      </button>
+      {aiOpen && <AiDialog onClose={() => setAiOpen(false)} />}
       {extra}
       <span className="spacer" />
       <button

@@ -912,3 +912,46 @@ table.fields td {
     padding: 0 0 8px;
   }
 }
+
+/* ---------- ИИ ---------- */
+.ai-settings {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--panel-2);
+}
+
+.ai-error {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  color: var(--danger);
+}
+
+.ai-error .hint {
+  margin-top: 4px;
+}
+
+.draft-bar {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px 6px 12px;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  max-width: calc(100% - 24px);
+  animation: pop-in 0.24s var(--ease);
+}
+
+.draft-bar span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
