@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { TOKEN_LABELS, TOKEN_NAMES, isHex, resolveColor, themeTokens } from "../../lib/color";
 import type { Color } from "../../lib/model";
 import { useEditor } from "../../store/editor";
+import { tr } from "../../lib/i18n";
 
 export function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -63,11 +64,11 @@ export function Seg<T extends string | number>({
           key={String(o.value)}
           role="radio"
           aria-checked={o.value === value}
-          title={o.title}
+          title={o.title && tr(o.title)}
           className={o.value === value ? "on" : ""}
           onClick={() => onChange(o.value)}
         >
-          {o.label}
+          {typeof o.label === "string" ? tr(o.label) : o.label}
         </button>
       ))}
     </div>
@@ -86,16 +87,16 @@ export function ColorInput({ value, onChange, allowNone = true }: { value: Color
         type="color"
         value={isHex(shown) && shown.length === 7 ? shown : "#000000"}
         onChange={(e) => onChange(e.target.value)}
-        aria-label="Свой цвет"
+        aria-label={tr("Свой цвет")}
       />
       <select className="input" value={mode} onChange={(e) => onChange(e.target.value === "custom" ? (isHex(shown) ? shown : "#888888") : e.target.value === "none" ? "transparent" : e.target.value)}>
-        {allowNone && <option value="none">Нет</option>}
+        {allowNone && <option value="none">{tr("Нет")}</option>}
         {TOKEN_NAMES.map((t) => (
           <option key={t} value={`$${t}`}>
-            {TOKEN_LABELS[t]}
+            {tr(TOKEN_LABELS[t])}
           </option>
         ))}
-        <option value="custom">{mode === "custom" ? value : "Свой…"}</option>
+        <option value="custom">{mode === "custom" ? value : tr("Свой…")}</option>
       </select>
     </div>
   );

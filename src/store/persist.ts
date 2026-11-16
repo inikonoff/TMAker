@@ -7,7 +7,7 @@ const KEY = "current";
 const PREFS_KEY = "prefs";
 const DEBOUNCE_MS = 500;
 
-type Prefs = { editorTheme: "light" | "dark"; snapOff: boolean };
+type Prefs = { editorTheme: "light" | "dark"; snapOff: boolean; lang?: "ru" | "en" };
 
 export async function loadInitial(): Promise<void> {
   try {
@@ -22,7 +22,10 @@ export async function loadInitial(): Promise<void> {
         resetHistory();
       }
     }
-    if (prefs) useEditor.setState({ editorTheme: prefs.editorTheme ?? "light", snapOff: !!prefs.snapOff });
+    if (prefs) {
+      useEditor.setState({ editorTheme: prefs.editorTheme ?? "light", snapOff: !!prefs.snapOff });
+      if (prefs.lang) useEditor.getState().setLanguage(prefs.lang);
+    }
   } catch (e) {
     console.warn("Не удалось загрузить проект", e);
   } finally {
@@ -43,8 +46,8 @@ export function startAutosave(): () => void {
         );
       }, DEBOUNCE_MS);
     }
-    if (s.editorTheme !== prev.editorTheme || s.snapOff !== prev.snapOff) {
-      idbSet(STORE_PROJECTS, PREFS_KEY, { editorTheme: s.editorTheme, snapOff: s.snapOff } satisfies Prefs).catch(
+    if (s.editorTheme !== prev.editorTheme || s.snapOff !== prev.snapOff || s.lang !== prev.lang) {
+      idbSet(STORE_PROJECTS, PREFS_KEY, { editorTheme: s.editorTheme, snapOff: s.snapOff, lang: s.lang } satisfies Prefs).catch(
         () => {},
       );
     }

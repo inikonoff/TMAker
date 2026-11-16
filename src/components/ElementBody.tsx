@@ -7,6 +7,7 @@ import type { Element, Stroke } from "../lib/model";
 import { shapePath, strokeDash } from "../lib/shapes";
 import { useImageSrc } from "../store/images";
 import { Icon } from "./Icon";
+import { tr } from "../lib/i18n";
 
 const SHADOWS = [
   "none",
@@ -193,7 +194,7 @@ function Body({ el, tokens, rows }: BodyProps) {
               {t}
             </div>
           ))}
-          {items.length === 0 && <div style={{ padding: 16, color: muted }}>Пусто</div>}
+          {items.length === 0 && <div style={{ padding: 16, color: muted }}>{tr("Пусто")}</div>}
         </div>
       );
     }

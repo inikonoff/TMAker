@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
-import { DraftBar } from "./components/ai/AiDialog";
+import { DraftBar } from "./components/ai/DraftBar";
 import { Canvas, fitAll } from "./components/canvas/Canvas";
 import { useHotkeys } from "./components/hotkeys";
 import { Inspector } from "./components/panels/Inspector";
@@ -11,6 +11,7 @@ import { ScreensPanel } from "./components/panels/ScreensPanel";
 import { RunView } from "./components/run/RunView";
 import { Toolbar } from "./components/Toolbar";
 import { useEditor } from "./store/editor";
+import { tr } from "./lib/i18n";
 
 type MobileTab = "screens" | "props" | null;
 
@@ -20,6 +21,7 @@ export function App() {
   const editorTheme = useEditor((s) => s.editorTheme);
   const toast = useEditor((s) => s.toast);
   const loaded = useEditor((s) => s.loaded);
+  const lang = useEditor((s) => s.lang);
   const [tab, setTab] = useState<MobileTab>(null);
   useHotkeys();
 
@@ -35,9 +37,9 @@ export function App() {
   const toggle = (t: MobileTab) => setTab((cur) => (cur === t ? null : t));
 
   return (
-    <div className={`app${mode === "run" ? " run" : ""}`}>
+    <div key={lang} className={`app${mode === "run" ? " run" : ""}`}>
       <Toolbar />
-      <aside className={`panel left${tab === "screens" ? " open" : ""}`} aria-label="Экраны и элементы">
+      <aside className={`panel left${tab === "screens" ? " open" : ""}`} aria-label={tr("Экраны и элементы")}>
         {mode === "run" ? <FlowMap /> : <ScreensPanel />}
         {mode === "edit" && <Palette />}
         {mode === "edit" && <FlowMap />}
@@ -47,16 +49,16 @@ export function App() {
         <DraftBar />
       </main>
       {mode === "edit" && (
-        <aside className={`panel right${tab === "props" ? " open" : ""}`} aria-label="Свойства">
+        <aside className={`panel right${tab === "props" ? " open" : ""}`} aria-label={tr("Свойства")}>
           {hasSelection ? <Inspector /> : <ProjectPanel />}
         </aside>
       )}
       <nav className="mobile-tabs">
         <button className={tab === "screens" ? "on" : ""} onClick={() => toggle("screens")}>
-          Экраны и элементы
+          {tr("Экраны и элементы")}
         </button>
         <button className={tab === "props" ? "on" : ""} onClick={() => toggle("props")} disabled={mode === "run"}>
-          Свойства
+          {tr("Свойства")}
         </button>
       </nav>
       <AnimatePresence>

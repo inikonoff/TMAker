@@ -9,6 +9,7 @@ import { ActionSection } from "./ActionSection";
 import { ArrangeSection } from "./ArrangeSection";
 import { BindSection } from "./BindSection";
 import { ColorInput, NumField, Row, Seg } from "./controls";
+import { tr } from "../../lib/i18n";
 
 const TEXT_KINDS = new Set(["button", "text", "card", "badge", "checkbox", "mainButton", "backButton", "headerBar", "input"]);
 const ITEM_KINDS = new Set(["list", "tabs", "nav"]);
@@ -50,23 +51,23 @@ export async function setImageFromBlob(blob: Blob) {
     const ref = await putImage(blob);
     setContent({ image: ref }, "img");
   } catch (err) {
-    st.showToast(err instanceof Error ? err.message : "Не удалось сохранить картинку");
+    st.showToast(err instanceof Error ? err.message : tr("Не удалось сохранить картинку"));
   }
 }
 
 function ImageSection({ el }: { el: Element }) {
   const c = el.content ?? {};
   const fits: { value: ImageFit; label: string }[] = [
-    { value: "cover", label: "Заполнить" },
-    { value: "contain", label: "Вписать" },
-    ...(el.kind !== "image" ? [{ value: "icon" as const, label: "Иконка" }] : []),
+    { value: "cover", label: tr("Заполнить") },
+    { value: "contain", label: tr("Вписать") },
+    ...(el.kind !== "image" ? [{ value: "icon" as const, label: tr("Иконка") }] : []),
   ];
   return (
     <div className="section">
-      <h3>Картинка</h3>
+      <h3>{tr("Картинка")}</h3>
       <div className="row" style={{ gap: 4, flexWrap: "wrap" }}>
         <label className="btn sm ghost-line" style={{ cursor: "pointer" }}>
-          <Icon name="upload" size={15} /> Файл
+          <Icon name="upload" size={15} /> {tr("Файл")}
           <input
             type="file"
             accept="image/*"
@@ -80,13 +81,13 @@ function ImageSection({ el }: { el: Element }) {
         </label>
         {c.image && (
           <button className="btn sm ghost-line danger" onClick={() => setContent({ image: undefined }, "img")}>
-            Убрать
+            {tr("Убрать")}
           </button>
         )}
       </div>
       <input
         className="input"
-        placeholder="https://… или вставьте Ctrl+V"
+        placeholder={tr("https://… или вставьте Ctrl+V")}
         value={c.image && !c.image.startsWith("idb:") ? c.image : ""}
         onChange={(e) => {
           const v = e.target.value.trim();
@@ -116,11 +117,11 @@ export function Inspector() {
     <>
       <div className="section">
         <h3>
-          {multi ? `Выбрано: ${sel.length}` : KIND_SPEC[el.kind].label}
+          {multi ? tr("Выбрано: {n}", { n: sel.length }) : tr(KIND_SPEC[el.kind].label)}
           <span style={{ display: "flex", gap: 2 }}>
             <button
               className="btn sm"
-              title="Дублировать (Ctrl+D)"
+              title={tr("Дублировать (Ctrl+D)")}
               onClick={() => {
                 let next: string[] = [];
                 st.commit((p) => {
@@ -133,7 +134,7 @@ export function Inspector() {
             >
               <Icon name="copy" size={15} />
             </button>
-            <button className="btn sm danger" title="Удалить (Delete)" onClick={() => st.commit((p) => deleteElements(p, ids))}>
+            <button className="btn sm danger" title={tr("Удалить (Delete)")} onClick={() => st.commit((p) => deleteElements(p, ids))}>
               <Icon name="trash" size={15} />
             </button>
           </span>
@@ -141,7 +142,7 @@ export function Inspector() {
         {!multi && (
           <input
             className="input"
-            placeholder="Имя слоя"
+            placeholder={tr("Имя слоя")}
             value={el.name ?? ""}
             onChange={(e) => patchSelected(() => ({ name: e.target.value || undefined }), "name")}
             style={{ marginBottom: 8 }}
@@ -151,34 +152,34 @@ export function Inspector() {
           <div className="grid2">
             <NumField label="X" value={el.x} onChange={(v) => patchSelected(() => ({ x: v }), "x")} />
             <NumField label="Y" value={el.y} onChange={(v) => patchSelected(() => ({ y: v }), "y")} />
-            <NumField label="Ш" value={el.w} min={1} onChange={(v) => patchSelected(() => ({ w: v }), "w")} />
-            <NumField label="В" value={el.h} min={el.kind === "divider" ? 1 : 1} onChange={(v) => patchSelected(() => ({ h: v }), "h")} />
+            <NumField label={tr("Ш")} value={el.w} min={1} onChange={(v) => patchSelected(() => ({ w: v }), "w")} />
+            <NumField label={tr("В")} value={el.h} min={el.kind === "divider" ? 1 : 1} onChange={(v) => patchSelected(() => ({ h: v }), "h")} />
           </div>
         )}
         <div className="row" style={{ gap: 4 }}>
-          <button className="btn sm ghost-line" title="На передний план" onClick={() => st.commit((p) => reorderZ(p, ids, "front"))}>
+          <button className="btn sm ghost-line" title={tr("На передний план")} onClick={() => st.commit((p) => reorderZ(p, ids, "front"))}>
             ⤒
           </button>
-          <button className="btn sm ghost-line" title="Выше" onClick={() => st.commit((p) => reorderZ(p, ids, "forward"))}>
+          <button className="btn sm ghost-line" title={tr("Выше")} onClick={() => st.commit((p) => reorderZ(p, ids, "forward"))}>
             ↑
           </button>
-          <button className="btn sm ghost-line" title="Ниже" onClick={() => st.commit((p) => reorderZ(p, ids, "backward"))}>
+          <button className="btn sm ghost-line" title={tr("Ниже")} onClick={() => st.commit((p) => reorderZ(p, ids, "backward"))}>
             ↓
           </button>
-          <button className="btn sm ghost-line" title="На задний план" onClick={() => st.commit((p) => reorderZ(p, ids, "back"))}>
+          <button className="btn sm ghost-line" title={tr("На задний план")} onClick={() => st.commit((p) => reorderZ(p, ids, "back"))}>
             ⤓
           </button>
           <span className="spacer" />
           <button
             className={`btn sm${el.locked ? " on" : ""}`}
-            title="Закрепить"
+            title={tr("Закрепить")}
             onClick={() => patchSelected(() => ({ locked: el.locked ? undefined : true }))}
           >
             <Icon name="lock" size={15} />
           </button>
           <button
             className={`btn sm${el.hidden ? " on" : ""}`}
-            title="Скрыть в превью"
+            title={tr("Скрыть в превью")}
             onClick={() => patchSelected(() => ({ hidden: el.hidden ? undefined : true }))}
           >
             <Icon name="eye" size={15} />
@@ -190,7 +191,7 @@ export function Inspector() {
 
       {(TEXT_KINDS.has(el.kind) || ITEM_KINDS.has(el.kind) || el.kind === "shape" || el.kind === "switch" || el.kind === "slider") && (
         <div className="section">
-          <h3>Содержимое</h3>
+          <h3>{tr("Содержимое")}</h3>
           {TEXT_KINDS.has(el.kind) && el.kind !== "input" && (
             <textarea
               className="input"
@@ -203,7 +204,7 @@ export function Inspector() {
           {el.kind === "input" && (
             <input
               className="input"
-              placeholder="Подсказка"
+              placeholder={tr("Подсказка")}
               value={c.placeholder ?? ""}
               onChange={(e) => setContent({ placeholder: e.target.value }, "ph")}
               style={{ marginBottom: 8 }}
@@ -216,11 +217,11 @@ export function Inspector() {
                 value={(c.items ?? []).join("\n")}
                 onChange={(e) => setContent({ items: e.target.value.split("\n") }, "items")}
                 rows={4}
-                placeholder="Каждый пункт с новой строки"
+                placeholder={tr("Каждый пункт с новой строки")}
                 style={{ marginBottom: 8 }}
               />
               {el.kind !== "list" && (
-                <Row label="Активный">
+                <Row label={tr("Активный")}>
                   <NumField label="#" value={(c.value ?? 0) + 1} min={1} max={(c.items ?? []).length || 1} onChange={(v) => setContent({ value: v - 1 }, "val")} />
                 </Row>
               )}
@@ -230,19 +231,19 @@ export function Inspector() {
             <>
               <Seg value={c.shape ?? "rect"} options={SHAPES} onChange={(v) => setContent({ shape: v }, "shape")} />
               {c.shape === "polygon" && (
-                <Row label="Углов">
+                <Row label={tr("Углов")}>
                   <input type="range" min={3} max={12} value={c.sides ?? 6} onChange={(e) => setContent({ sides: Number(e.target.value) }, "sides")} />
                 </Row>
               )}
             </>
           )}
           {(el.kind === "switch" || el.kind === "checkbox") && (
-            <Row label="Включён">
+            <Row label={tr("Включён")}>
               <input type="checkbox" checked={!!c.checked} onChange={(e) => setContent({ checked: e.target.checked }, "chk")} />
             </Row>
           )}
           {el.kind === "slider" && (
-            <Row label="Значение">
+            <Row label={tr("Значение")}>
               <input type="range" min={0} max={1} step={0.01} value={c.value ?? 0} onChange={(e) => setContent({ value: Number(e.target.value) }, "val")} />
             </Row>
           )}
@@ -252,27 +253,27 @@ export function Inspector() {
       {!multi && IMAGE_KINDS.has(el.kind) && <ImageSection el={el} />}
 
       <div className="section">
-        <h3>Стиль</h3>
+        <h3>{tr("Стиль")}</h3>
         {!lineLike && (
-          <Row label="Заливка">
+          <Row label={tr("Заливка")}>
             <ColorInput value={s.fill} onChange={(v) => setStyle({ fill: v }, "fill")} />
           </Row>
         )}
-        <Row label="Рамка">
+        <Row label={tr("Рамка")}>
           <Seg value={s.stroke.style} options={STROKES} onChange={(v) => setStroke({ style: v, width: Math.max(s.stroke.width, v === "double" ? 3 : 1) }, "stroke")} />
         </Row>
         {s.stroke.style !== "none" && (
           <>
-            <Row label="Цвет рамки">
+            <Row label={tr("Цвет рамки")}>
               <ColorInput value={s.stroke.color} onChange={(v) => setStroke({ color: v }, "stroke-c")} allowNone={false} />
             </Row>
-            <Row label="Толщина">
+            <Row label={tr("Толщина")}>
               <input type="range" min={1} max={16} value={s.stroke.width} onChange={(e) => setStroke({ width: Number(e.target.value) }, "stroke-w")} />
             </Row>
           </>
         )}
         {el.kind === "arrow" || el.kind === "line" ? (
-          <Row label="Концы">
+          <Row label={tr("Концы")}>
             <Seg
               value={el.arrow?.head ?? "none"}
               options={[
@@ -284,44 +285,44 @@ export function Inspector() {
             />
           </Row>
         ) : (
-          <Row label="Скругление">
+          <Row label={tr("Скругление")}>
             <input type="range" min={0} max={Math.max(4, Math.round(Math.min(el.w, el.h) / 2))} value={s.radius} onChange={(e) => setStyle({ radius: Number(e.target.value) }, "radius")} />
           </Row>
         )}
         {!lineLike && (
-          <Row label="Тень">
-            <Seg value={s.shadow} options={[0, 1, 2, 3].map((v) => ({ value: v, label: v === 0 ? "Нет" : String(v) }))} onChange={(v) => setStyle({ shadow: v }, "shadow")} />
+          <Row label={tr("Тень")}>
+            <Seg value={s.shadow} options={[0, 1, 2, 3].map((v) => ({ value: v, label: v === 0 ? tr("Нет") : String(v) }))} onChange={(v) => setStyle({ shadow: v }, "shadow")} />
           </Row>
         )}
-        <Row label="Прозрачн.">
+        <Row label={tr("Прозрачн.")}>
           <input type="range" min={0.05} max={1} step={0.05} value={s.opacity} onChange={(e) => setStyle({ opacity: Number(e.target.value) }, "opacity")} />
         </Row>
       </div>
 
       {(TEXT_KINDS.has(el.kind) || ITEM_KINDS.has(el.kind)) && (
         <div className="section">
-          <h3>Текст</h3>
-          <Row label="Цвет">
+          <h3>{tr("Текст")}</h3>
+          <Row label={tr("Цвет")}>
             <ColorInput value={s.textColor} onChange={(v) => setStyle({ textColor: v }, "tc")} allowNone={false} />
           </Row>
           <div className="grid2">
-            <NumField label="Размер" value={s.fontSize} min={6} max={200} onChange={(v) => setStyle({ fontSize: v }, "fs")} />
+            <NumField label={tr("Размер")} value={s.fontSize} min={6} max={200} onChange={(v) => setStyle({ fontSize: v }, "fs")} />
             <label className="field">
-              <span>Вес</span>
+              <span>{tr("Вес")}</span>
               <select value={s.fontWeight} onChange={(e) => setStyle({ fontWeight: Number(e.target.value) as Style["fontWeight"] }, "fw")}>
-                <option value={400}>Обычный</option>
-                <option value={500}>Средний</option>
-                <option value={600}>Полужирный</option>
-                <option value={700}>Жирный</option>
+                <option value={400}>{tr("Обычный")}</option>
+                <option value={500}>{tr("Средний")}</option>
+                <option value={600}>{tr("Полужирный")}</option>
+                <option value={700}>{tr("Жирный")}</option>
               </select>
             </label>
           </div>
           <Seg
             value={s.align}
             options={[
-              { value: "left", label: "Слева" },
-              { value: "center", label: "Центр" },
-              { value: "right", label: "Справа" },
+              { value: "left", label: tr("Слева") },
+              { value: "center", label: tr("Центр") },
+              { value: "right", label: tr("Справа") },
             ]}
             onChange={(v) => setStyle({ align: v }, "align")}
           />

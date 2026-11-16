@@ -6,6 +6,7 @@ import type { Project } from "../../lib/model";
 import { dragOX, dragOY, useDrag } from "../../store/drag";
 import { useEditor } from "../../store/editor";
 import { startArrowEndDrag, startResize } from "./gestures";
+import { tr } from "../../lib/i18n";
 
 const HANDLE_POS: Record<Handle, [number, number]> = {
   nw: [0, 0],
@@ -58,7 +59,7 @@ export function SelectionOverlay({ project }: { project: Project }) {
             <div
               key={key}
               className="handle"
-              title={pt.el ? "Конец привязан к элементу" : "Перетащите на элемент, чтобы привязать"}
+              title={pt.el ? tr("Конец привязан к элементу") : tr("Перетащите на элемент, чтобы привязать")}
               style={{ left: pt.x, top: pt.y, borderRadius: "50%", cursor: "crosshair", background: pt.el ? "var(--accent)" : "#fff" }}
               onPointerDown={(e) => {
                 e.stopPropagation();

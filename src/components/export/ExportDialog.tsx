@@ -6,6 +6,7 @@ import { download } from "../files";
 import { Icon } from "../Icon";
 import { copyShareLink } from "../shareLink";
 import { canWriteFolder, folderName, prepareExport, writeToFolder, zipFiles } from "./runExport";
+import { tr } from "../../lib/i18n";
 
 const PATH_KEY = "tma-builder:export-path";
 const OPTS_KEY = "tma-builder:export-opts";
@@ -54,7 +55,7 @@ export function ExportDialog({ onClose }: { onClose: () => void }) {
       setDone(null);
       const files = await prepareExport(project, opts, setStatus);
       if (target === "folder") {
-        setStatus("Выберите папку…");
+        setStatus(tr("Выберите папку…"));
         const where = await writeToFolder(files, folder);
         setDone({ where, folder });
       } else {
@@ -62,7 +63,7 @@ export function ExportDialog({ onClose }: { onClose: () => void }) {
         setDone({ where: "zip", folder });
       }
     } catch (e) {
-      if ((e as Error).name !== "AbortError") useEditor.getState().showToast(`Экспорт не удался: ${(e as Error).message}`);
+      if ((e as Error).name !== "AbortError") useEditor.getState().showToast(tr("Экспорт не удался: {e}", { e: (e as Error).message }));
     } finally {
       setStatus(null);
     }
@@ -72,23 +73,23 @@ export function ExportDialog({ onClose }: { onClose: () => void }) {
     <div className="modal-back" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal" role="dialog" aria-modal="true" aria-labelledby="export-title">
         <div className="modal-head">
-          <h2 id="export-title">Экспорт для VS Code и модели</h2>
-          <button className="btn sm" onClick={onClose} aria-label="Закрыть">
+          <h2 id="export-title">{tr("Экспорт для VS Code и модели")}</h2>
+          <button className="btn sm" onClick={onClose} aria-label={tr("Закрыть")}>
             <Icon name="close" />
           </button>
         </div>
         <p className="hint" style={{ marginTop: 0 }}>
-          Папка <b>{folder}/</b>: project.json, PROMPT.md, AGENTS.md, CLAUDE.md, скриншоты экранов и картинки.
+          {tr("Папка")} <b>{folder}/</b>{tr(": project.json, PROMPT.md, AGENTS.md, CLAUDE.md, скриншоты экранов и картинки.")}
         </p>
         <label className="check">
-          <input type="checkbox" checked={opts.screenshots} onChange={(e) => set({ screenshots: e.target.checked })} /> Скриншоты экранов (PNG)
+          <input type="checkbox" checked={opts.screenshots} onChange={(e) => set({ screenshots: e.target.checked })} /> {tr("Скриншоты экранов (PNG)")}
         </label>
         <label className="check">
-          <input type="checkbox" checked={opts.scaffold} onChange={(e) => set({ scaffold: e.target.checked })} /> Заготовка приложения: фронтенд, бот, API, база, Dockerfile
+          <input type="checkbox" checked={opts.scaffold} onChange={(e) => set({ scaffold: e.target.checked })} /> {tr("Заготовка приложения: фронтенд, бот, API, база, Dockerfile")}
         </label>
         {opts.scaffold && (
           <div className="row" style={{ paddingLeft: 24 }}>
-            <label>База</label>
+            <label>{tr("База")}</label>
             <div className="seg" style={{ maxWidth: 240 }}>
               {(["sqlite", "postgres"] as const).map((d) => (
                 <button key={d} className={opts.dialect === d ? "on" : ""} onClick={() => set({ dialect: d })}>
@@ -99,10 +100,10 @@ export function ExportDialog({ onClose }: { onClose: () => void }) {
           </div>
         )}
         <div className="row" style={{ marginTop: 8 }}>
-          <label title="Нужен только для ссылки «Открыть в VS Code»">Путь к папке</label>
+          <label title={tr("Нужен только для ссылки «Открыть в VS Code»")}>{tr("Путь к папке")}</label>
           <input
             className="input"
-            placeholder="/home/me/projects (необязательно)"
+            placeholder={tr("/home/me/projects (необязательно)")}
             value={basePath}
             onChange={(e) => {
               setBasePath(e.target.value);
@@ -117,37 +118,37 @@ export function ExportDialog({ onClose }: { onClose: () => void }) {
         <div className="modal-actions">
           {canWriteFolder() && (
             <button className="btn primary" disabled={!!status} onClick={() => run("folder")}>
-              <Icon name="file" /> Записать в папку…
+              <Icon name="file" /> {tr("Записать в папку…")}
             </button>
           )}
           <button className={`btn ${canWriteFolder() ? "ghost-line" : "primary"}`} disabled={!!status} onClick={() => run("zip")}>
-            <Icon name="download" /> Скачать ZIP
+            <Icon name="download" /> {tr("Скачать ZIP")}
           </button>
-          <button className="btn ghost-line" disabled={!!status} onClick={() => void copyShareLink()} title="Проект в ссылке #docz= (без локальных картинок)">
-            <Icon name="link" /> Ссылка
+          <button className="btn ghost-line" disabled={!!status} onClick={() => void copyShareLink()} title={tr("Проект в ссылке #docz= (без локальных картинок)")}>
+            <Icon name="link" /> {tr("Ссылка")}
           </button>
         </div>
         {status && <p className="hint">{status}</p>}
         {done && (
           <div className="done">
             {done.where === "zip" ? (
-              <>Архив скачан. Распакуйте его и откройте папку в VS Code.</>
+              <>{tr("Архив скачан. Распакуйте его и откройте папку в VS Code.")}</>
             ) : (
               <>
-                Записано в <b>{done.where}/{done.folder}</b>.{" "}
+                {tr("Записано в")} <b>{done.where}/{done.folder}</b>.{" "}
                 {basePath ? (
-                  <a href={vscodeUrl(basePath, done.folder)}>Открыть в VS Code</a>
+                  <a href={vscodeUrl(basePath, done.folder)}>{tr("Открыть в VS Code")}</a>
                 ) : (
-                  <span className="hint">Укажите путь к папке выше — появится ссылка «Открыть в VS Code».</span>
+                  <span className="hint">{tr("Укажите путь к папке выше — появится ссылка «Открыть в VS Code».")}</span>
                 )}
               </>
             )}
             <div className="hint" style={{ marginTop: 6 }}>
-              Дальше: <code>claude</code> в этой папке — агент прочитает AGENTS.md.
+              {tr("Дальше:")} <code>claude</code> {tr("в этой папке — агент прочитает AGENTS.md.")}
             </div>
           </div>
         )}
-        {!canWriteFolder() && <p className="hint">Запись в папку доступна в Chrome и Edge; здесь — ZIP.</p>}
+        {!canWriteFolder() && <p className="hint">{tr("Запись в папку доступна в Chrome и Edge; здесь — ZIP.")}</p>}
       </div>
     </div>
   );

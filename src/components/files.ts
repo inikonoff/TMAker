@@ -1,6 +1,7 @@
 // Открытие и сохранение проекта как JSON-файла.
 import { parseProject } from "../lib/validate";
 import { resetHistory, useEditor } from "../store/editor";
+import { tr } from "../lib/i18n";
 
 export function download(name: string, data: Blob | string, type = "application/json") {
   const blob = typeof data === "string" ? new Blob([data], { type }) : data;
@@ -33,12 +34,12 @@ export function openJsonText(text: string, opts: { fresh?: boolean } = {}) {
   const st = useEditor.getState();
   const r = parseProject(text);
   if (!r.ok) {
-    st.showToast(`Не удалось открыть: ${r.error}`);
+    st.showToast(tr("Не удалось открыть: {e}", { e: tr(r.error) }));
     return false;
   }
   st.replaceProject(r.project);
   if (opts.fresh) resetHistory();
-  st.showToast(r.warnings.length ? `Открыто с замечаниями: ${r.warnings.length}` : "Проект открыт");
+  st.showToast(r.warnings.length ? tr("Открыто с замечаниями: {n}", { n: r.warnings.length }) : tr("Проект открыт"));
   if (r.warnings.length) console.info("Замечания валидатора:", r.warnings);
   return true;
 }

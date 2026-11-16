@@ -2,6 +2,7 @@
 import type { Binding, Element } from "../../lib/model";
 import { useEditor } from "../../store/editor";
 import { patchSelected } from "./Inspector";
+import { tr } from "../../lib/i18n";
 
 const MODES: { value: Binding["mode"]; label: string; kinds: string[] }[] = [
   { value: "list", label: "Список записей", kinds: ["list"] },
@@ -17,10 +18,10 @@ export function BindSection({ el }: { el: Element }) {
   const table = tables.find((t) => t.name === el.bind?.table);
   return (
     <div className="section">
-      <h3>Данные</h3>
+      <h3>{tr("Данные")}</h3>
       {tables.length === 0 ? (
         <p className="hint" style={{ margin: 0 }}>
-          Сначала создайте таблицу в окне «Данные».
+          {tr("Сначала создайте таблицу в окне «Данные».")}
         </p>
       ) : (
         <>
@@ -30,7 +31,7 @@ export function BindSection({ el }: { el: Element }) {
             value={el.bind?.table ?? ""}
             onChange={(e) => (e.target.value ? set({ table: e.target.value, mode: el.bind?.mode ?? modes[0]!.value }) : set(undefined))}
           >
-            <option value="">Без данных</option>
+            <option value="">{tr("Без данных")}</option>
             {tables.map((t) => (
               <option key={t.name} value={t.name}>
                 {t.name}
@@ -42,7 +43,7 @@ export function BindSection({ el }: { el: Element }) {
               <select className="input" style={{ marginBottom: 8 }} value={el.bind.mode} onChange={(e) => set({ ...el.bind!, mode: e.target.value as Binding["mode"] })}>
                 {modes.map((m) => (
                   <option key={m.value} value={m.value}>
-                    {m.label}
+                    {tr(m.label)}
                   </option>
                 ))}
               </select>
@@ -56,7 +57,7 @@ export function BindSection({ el }: { el: Element }) {
                     set(b);
                   }}
                 >
-                  <option value="">{el.bind.mode === "value" ? "Количество записей" : "Первое текстовое поле"}</option>
+                  <option value="">{el.bind.mode === "value" ? tr("Количество записей") : tr("Первое текстовое поле")}</option>
                   {table.fields.map((f) => (
                     <option key={f.name} value={f.name}>
                       {f.name}
@@ -65,7 +66,7 @@ export function BindSection({ el }: { el: Element }) {
                 </select>
               )}
               <p className="hint" style={{ marginBottom: 0 }}>
-                {el.bind.mode === "form" ? "В режиме «Запустить» здесь появится форма с полями таблицы." : "В режиме «Запустить» показываются записи песочницы."}
+                {el.bind.mode === "form" ? tr("В режиме «Запустить» здесь появится форма с полями таблицы.") : tr("В режиме «Запустить» показываются записи песочницы.")}
               </p>
             </>
           )}

@@ -5,6 +5,7 @@ import { AiError, applySchemaDraft, applyScreenDraft, applyTextsDraft, buildMess
 import { useEditor } from "../../store/editor";
 import { focusScreen } from "../canvas/Canvas";
 import { Icon } from "../Icon";
+import { tr } from "../../lib/i18n";
 
 const KEY = "tma-builder:ai";
 
@@ -54,9 +55,9 @@ export function AiDialog({ onClose }: { onClose: () => void }) {
     try {
       const list = await listModels(s);
       if (list.length) setModels(list);
-      useEditor.getState().showToast(`Соединение есть, моделей: ${list.length}`);
+      useEditor.getState().showToast(tr("Соединение есть, моделей: {n}", { n: list.length }));
     } catch (e) {
-      setError({ text: e instanceof AiError ? e.message : "Запрос не дошёл: вероятно, CORS. Укажите прокси.", kind: e instanceof AiError ? e.kind : "cors" });
+      setError({ text: e instanceof AiError ? e.message : tr("Запрос не дошёл: вероятно, CORS. Укажите прокси."), kind: e instanceof AiError ? e.kind : "cors" });
     } finally {
       setBusy(false);
     }
@@ -64,7 +65,7 @@ export function AiDialog({ onClose }: { onClose: () => void }) {
 
   const run = async () => {
     if (!s.key) return setSettingsOpen(true);
-    if (task === "screen" && !prompt.trim()) return setError({ text: "Опишите экран" });
+    if (task === "screen" && !prompt.trim()) return setError({ text: tr("Опишите экран") });
     setError(null);
     setBusy(true);
     abort.current = new AbortController();
@@ -75,7 +76,7 @@ export function AiDialog({ onClose }: { onClose: () => void }) {
       try {
         raw = extractJson(text);
       } catch {
-        throw new AiError("Модель вернула не JSON. Попробуйте ещё раз или другую модель.", "parse");
+        throw new AiError(tr("Модель вернула не JSON. Попробуйте ещё раз или другую модель."), "parse");
       }
       const cur = useEditor.getState().project;
       const r = task === "screen" ? applyScreenDraft(cur, raw) : task === "schema" ? applySchemaDraft(cur, raw) : applyTextsDraft(cur, raw, activeScreen);
@@ -97,12 +98,12 @@ export function AiDialog({ onClose }: { onClose: () => void }) {
     <div className="modal-back" onPointerDown={(e) => e.target === e.currentTarget && !busy && onClose()}>
       <div className="modal" role="dialog" aria-modal="true" aria-labelledby="ai-title">
         <div className="modal-head">
-          <h2 id="ai-title">ИИ-помощник</h2>
+          <h2 id="ai-title">{tr("ИИ-помощник")}</h2>
           <span style={{ display: "flex", gap: 4 }}>
-            <button className={`btn sm${settingsOpen ? " on" : ""}`} onClick={() => setSettingsOpen(!settingsOpen)} title="Настройки">
+            <button className={`btn sm${settingsOpen ? " on" : ""}`} onClick={() => setSettingsOpen(!settingsOpen)} title={tr("Настройки")}>
               <Icon name="settings" size={16} />
             </button>
-            <button className="btn sm" onClick={onClose} aria-label="Закрыть">
+            <button className="btn sm" onClick={onClose} aria-label={tr("Закрыть")}>
               <Icon name="close" />
             </button>
           </span>
@@ -110,11 +111,11 @@ export function AiDialog({ onClose }: { onClose: () => void }) {
         {settingsOpen && (
           <div className="ai-settings">
             <div className="row">
-              <label>Ключ Groq</label>
+              <label>{tr("Ключ Groq")}</label>
               <input className="input" type="password" autoComplete="off" placeholder="gsk_…" value={s.key} onChange={(e) => update({ key: e.target.value.trim() })} />
             </div>
             <div className="row">
-              <label>Модель</label>
+              <label>{tr("Модель")}</label>
               <input className="input" list="groq-models" value={s.model} onChange={(e) => update({ model: e.target.value })} />
               <datalist id="groq-models">
                 {models.map((m) => (
@@ -123,37 +124,37 @@ export function AiDialog({ onClose }: { onClose: () => void }) {
               </datalist>
             </div>
             <div className="row">
-              <label title="Адрес OpenAI-совместимого API или вашего прокси">Base URL</label>
+              <label title={tr("Адрес OpenAI-совместимого API или вашего прокси")}>Base URL</label>
               <input className="input" value={s.baseUrl} onChange={(e) => update({ baseUrl: e.target.value.trim() || DEFAULT_BASE_URL })} />
             </div>
             <div className="row" style={{ gap: 6 }}>
               <button className="btn sm ghost-line" disabled={!s.key || busy} onClick={check}>
-                Проверить соединение
+                {tr("Проверить соединение")}
               </button>
               <a className="hint" href="https://console.groq.com/keys" target="_blank" rel="noreferrer">
-                Получить ключ
+                {tr("Получить ключ")}
               </a>
             </div>
             <p className="hint" style={{ margin: 0 }}>
-              Ключ хранится только в этом браузере и уходит только на указанный Base URL. Не публикуйте сборку с ключом.
+              {tr("Ключ хранится только в этом браузере и уходит только на указанный Base URL. Не публикуйте сборку с ключом.")}
             </p>
           </div>
         )}
         <div className="seg" style={{ margin: "12px 0 8px" }}>
           {TASKS.map((x) => (
             <button key={x.id} className={task === x.id ? "on" : ""} onClick={() => setTask(x.id)}>
-              {x.label}
+              {tr(x.label)}
             </button>
           ))}
         </div>
         <p className="hint" style={{ marginTop: 0 }}>
-          {t.hint}
+          {tr(t.hint)}
         </p>
         <textarea
           className="input"
           rows={3}
           value={prompt}
-          placeholder={t.placeholder}
+          placeholder={tr(t.placeholder)}
           onChange={(e) => setPrompt(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) void run();
@@ -161,44 +162,25 @@ export function AiDialog({ onClose }: { onClose: () => void }) {
         />
         {error && (
           <div className="ai-error" role="alert">
-            {error.text}
+            {tr(error.text)}
             {error.kind === "cors" && (
               <div className="hint">
-                Разверните прокси из папки <code>proxy/</code> репозитория (Cloudflare Worker, 2 минуты) и впишите его адрес в Base URL.
+                {tr("Разверните прокси из папки")} <code>proxy/</code> {tr("репозитория (Cloudflare Worker, 2 минуты) и впишите его адрес в Base URL.")}
               </div>
             )}
           </div>
         )}
         <div className="modal-actions">
           <button className="btn primary" disabled={busy} onClick={run}>
-            <Icon name="ai" /> {busy ? "Думаю…" : "Сделать черновик"}
+            <Icon name="ai" /> {busy ? tr("Думаю…") : tr("Сделать черновик")}
           </button>
           {busy && (
             <button className="btn ghost-line" onClick={() => abort.current?.abort()}>
-              Остановить
+              {tr("Остановить")}
             </button>
           )}
         </div>
       </div>
-    </div>
-  );
-}
-
-/** Плашка черновика ИИ: оставить или отменить (отмена — один шаг). */
-export function DraftBar() {
-  const pending = useEditor((s) => s.pendingDraft);
-  const note = useEditor((s) => s.draftNote);
-  if (!pending) return null;
-  return (
-    <div className="draft-bar" role="status">
-      <Icon name="ai" />
-      <span>Черновик ИИ{note ? `: ${note}` : ""}</span>
-      <button className="btn sm primary" onClick={() => useEditor.getState().acceptDraft()}>
-        Оставить
-      </button>
-      <button className="btn sm ghost-line" onClick={() => useEditor.getState().rejectDraft()}>
-        Отменить
-      </button>
     </div>
   );
 }

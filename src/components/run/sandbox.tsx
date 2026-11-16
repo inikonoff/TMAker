@@ -4,6 +4,7 @@ import { uid } from "../../lib/ids";
 import type { Element, Project, Table } from "../../lib/model";
 import type { SandboxData } from "../../lib/sandbox";
 import { addRow, listRows, parseSandbox, singleValue, validateRow } from "../../lib/sandbox";
+import { tr } from "../../lib/i18n";
 
 const KEY = "tma-builder:sandbox";
 
@@ -116,9 +117,9 @@ export function useSandbox(project: Project) {
     tables.size > 0 ? (
       <button
         className="btn sm"
-        title="Очистить данные песочницы"
+        title={tr("Очистить данные песочницы")}
         disabled={count === 0}
-        onClick={() => confirm("Удалить все записи песочницы?") && setData({})}
+        onClick={() => confirm(tr("Удалить все записи песочницы?")) && setData({})}
       >
         Данные: {count} ✕
       </button>

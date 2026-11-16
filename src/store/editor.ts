@@ -4,6 +4,8 @@ import type { Viewport } from "../lib/geometry";
 import type { History } from "../lib/history";
 import { breakMerge, createHistory, record, redo as redoH, undo as undoH } from "../lib/history";
 import { emptyProject } from "../lib/defaults";
+import type { Lang } from "../lib/i18n";
+import { setLang } from "../lib/i18n";
 import type { Project } from "../lib/model";
 import { expandGroups } from "../lib/ops";
 
@@ -16,6 +18,7 @@ export type EditorState = {
   activeScreen: string;
   viewport: Viewport;
   editorTheme: EditorTheme;
+  lang: Lang;
   /** Переключатель привязки (на телефоне вместо Ctrl). */
   snapOff: boolean;
   mode: Mode;
@@ -47,6 +50,7 @@ type Actions = {
   setActiveScreen: (id: string) => void;
   setViewport: (v: Viewport) => void;
   setEditorTheme: (t: EditorTheme) => void;
+  setLanguage: (l: Lang) => void;
   setSnapOff: (v: boolean) => void;
   setMode: (m: Mode) => void;
   showToast: (msg: string) => void;
@@ -73,6 +77,7 @@ export const useEditor = create<EditorState & Actions>()((set, get) => ({
   activeScreen: initial.screens[0]!.id,
   viewport: { x: 80, y: 80, z: 0.75 },
   editorTheme: "light",
+  lang: "ru",
   snapOff: false,
   mode: "edit",
   canUndo: false,
@@ -197,6 +202,10 @@ export const useEditor = create<EditorState & Actions>()((set, get) => ({
   setActiveScreen: (id) => set({ activeScreen: id }),
   setViewport: (v) => set({ viewport: v }),
   setEditorTheme: (t) => set({ editorTheme: t }),
+  setLanguage: (l) => {
+    setLang(l);
+    set({ lang: l });
+  },
   setSnapOff: (v) => set({ snapOff: v }),
   setMode: (m) => set({ mode: m, selection: [] }),
   showToast: (msg) => {

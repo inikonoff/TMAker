@@ -4,6 +4,7 @@ import { screenSize } from "../lib/devices";
 import { addElements, maxZ, updateElements } from "../lib/ops";
 import { useEditor } from "../store/editor";
 import { putImage } from "../store/images";
+import { tr } from "../lib/i18n";
 
 const IMAGE_KINDS = new Set(["image", "button", "box", "card", "badge", "mainButton"]);
 
@@ -39,6 +40,6 @@ export async function pasteImage(blob: Blob) {
     st.commit((p) => addElements(p, [el]));
     st.select([el.id]);
   } catch (err) {
-    st.showToast(err instanceof Error ? err.message : "Не удалось вставить картинку");
+    st.showToast(err instanceof Error ? err.message : tr("Не удалось вставить картинку"));
   }
 }

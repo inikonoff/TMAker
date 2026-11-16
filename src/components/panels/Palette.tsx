@@ -6,6 +6,7 @@ import { KINDS } from "../../lib/model";
 import { addElements, elementsOf, maxZ } from "../../lib/ops";
 import { placeNew } from "../../lib/placement";
 import { useEditor } from "../../store/editor";
+import { tr } from "../../lib/i18n";
 
 /** Миниатюры видов элементов в палитре. */
 function KindGlyph({ kind }: { kind: Kind }) {
@@ -106,15 +107,15 @@ export function addKind(kind: Kind) {
 export function Palette() {
   return (
     <div className="section">
-      <h3>Элементы</h3>
+      <h3>{tr("Элементы")}</h3>
       {KIND_GROUPS.map((g) => (
         <div key={g.id}>
-          <div className="palette-group">{g.label}</div>
+          <div className="palette-group">{tr(g.label)}</div>
           <div className="palette">
             {KINDS.filter((k) => KIND_SPEC[k].group === g.id).map((k) => (
-              <button key={k} onClick={() => addKind(k)} title={`Добавить: ${KIND_SPEC[k].label}`}>
+              <button key={k} onClick={() => addKind(k)} title={tr("Добавить: {k}", { k: tr(KIND_SPEC[k].label) })}>
                 <KindGlyph kind={k} />
-                {KIND_SPEC[k].label}
+                {tr(KIND_SPEC[k].label)}
               </button>
             ))}
           </div>

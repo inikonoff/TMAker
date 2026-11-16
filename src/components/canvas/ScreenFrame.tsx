@@ -6,6 +6,7 @@ import type { Device, Element, Screen } from "../../lib/model";
 import { useDrag } from "../../store/drag";
 import { ElementView, LiveArrow } from "./ElementView";
 import { startScreenDrag } from "./gestures";
+import { tr } from "../../lib/i18n";
 
 type Props = {
   screen: Screen;
@@ -38,7 +39,7 @@ export const ScreenFrame = memo(function ScreenFrame({ screen, w, h, device, ele
         <span>
           {index + 1}. {screen.name}
         </span>
-        <small>{deviceLabel(device)}</small>
+        <small>{tr(deviceLabel(device))}</small>
       </div>
       <div className="screen-body" style={{ background: resolveColor(screen.bg, tokens, tokens.bg) }}>
         {elements.map((el) => {

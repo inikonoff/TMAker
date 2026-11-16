@@ -29,6 +29,7 @@ import { useSandbox } from "./sandbox";
 import { useRunBus } from "./runBus";
 import type { RunHandlers } from "./RunScreen";
 import { RunScreen } from "./RunScreen";
+import { tr } from "../../lib/i18n";
 
 type Step = { id: string; via: TransitionKind };
 type Anim = { from: string; to: string; kind: TransitionKind; dir: Direction; swipe?: boolean };
@@ -271,16 +272,16 @@ export function RunView() {
   return (
     <div className="runview" ref={boxRef}>
       <div className="run-bar">
-        <button className="btn sm ghost-line" disabled={stack.length < 2} onClick={back} title="Назад">
-          <Icon name="back" size={16} /> Назад
+        <button className="btn sm ghost-line" disabled={stack.length < 2} onClick={back} title={tr("Назад")}>
+          <Icon name="back" size={16} /> {tr("Назад")}
         </button>
-        <button className={`btn sm${highlight ? " on" : ""}`} onClick={() => setHighlight(!highlight)} title="Подсветить кликабельные зоны">
-          Зоны
+        <button className={`btn sm${highlight ? " on" : ""}`} onClick={() => setHighlight(!highlight)} title={tr("Подсветить кликабельные зоны")}>
+          {tr("Зоны")}
         </button>
-        <select className="input" style={{ width: "auto" }} value={previewTheme} onChange={(e) => setPreviewTheme(e.target.value as PreviewTheme)} title="Цвета превью">
-          <option value="project">Тема проекта</option>
-          <option value="tg-light">Telegram светлая</option>
-          <option value="tg-dark">Telegram тёмная</option>
+        <select className="input" style={{ width: "auto" }} value={previewTheme} onChange={(e) => setPreviewTheme(e.target.value as PreviewTheme)} title={tr("Цвета превью")}>
+          <option value="project">{tr("Тема проекта")}</option>
+          <option value="tg-light">{tr("Telegram светлая")}</option>
+          <option value="tg-dark">{tr("Telegram тёмная")}</option>
         </select>
         <button
           className="btn sm"
@@ -288,9 +289,9 @@ export function RunView() {
             finishNow();
             setStack([{ id: project.screens[0]!.id, via: "none" }]);
           }}
-          title="С первого экрана"
+          title={tr("С первого экрана")}
         >
-          ⟲ Сначала
+          {tr("⟲ Сначала")}
         </button>
         {sandbox.toolbar}
       </div>
@@ -324,7 +325,7 @@ export function RunView() {
           )}
         </div>
       </motion.div>
-      <ol className="run-path" aria-label="Путь">
+      <ol className="run-path" aria-label={tr("Путь")}>
         {stack.map((s, i) => (
           <li key={i}>
             {i > 0 && <span className="hint">{TRANSITION_SHORT[s.via]}</span>}

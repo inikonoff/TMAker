@@ -4,6 +4,7 @@ import { flowLayout } from "../../lib/flow";
 import { useEditor } from "../../store/editor";
 import { focusScreen } from "../canvas/Canvas";
 import { requestJump, useRunBus } from "../run/runBus";
+import { tr } from "../../lib/i18n";
 
 const NW = 96;
 const NH = 34;
@@ -25,10 +26,10 @@ export function FlowMap() {
 
   return (
     <div className="section">
-      <h3>Карта связей</h3>
-      {f.edges.length === 0 && <p className="hint" style={{ margin: "0 0 8px" }}>Назначьте кнопке «Перейти на экран» — здесь появятся стрелки.</p>}
+      <h3>{tr("Карта связей")}</h3>
+      {f.edges.length === 0 && <p className="hint" style={{ margin: "0 0 8px" }}>{tr("Назначьте кнопке «Перейти на экран» — здесь появятся стрелки.")}</p>}
       <div style={{ overflow: "auto", maxHeight: 280 }}>
-        <svg width={w} height={h} role="img" aria-label="Граф переходов" style={{ display: "block" }}>
+        <svg width={w} height={h} role="img" aria-label={tr("Граф переходов")} style={{ display: "block" }}>
           <defs>
             <marker id="fm-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
               <path d="M0 0L10 5L0 10z" fill="var(--muted)" />

@@ -14,6 +14,7 @@ import { cancelGesture, screenAt, setCanvasElement } from "./gestures";
 import { keys } from "./keys";
 import { GuidesLayer, SelectionOverlay } from "./Overlay";
 import { ScreenFrame } from "./ScreenFrame";
+import { tr } from "../../lib/i18n";
 
 export function fitAll(el: HTMLElement | null) {
   const st = useEditor.getState();
@@ -252,22 +253,22 @@ export function Canvas() {
         <GuidesLayer project={project} />
       </div>
       <div className="canvas-hud" onPointerDown={(e) => e.stopPropagation()}>
-        <button className="btn sm" onClick={() => zoomBy(1 / 1.2)} aria-label="Отдалить">
+        <button className="btn sm" onClick={() => zoomBy(1 / 1.2)} aria-label={tr("Отдалить")}>
           <Icon name="minus" />
         </button>
-        <button className="btn sm zoom-label" onClick={() => zoomBy(1 / viewport.z)} title="Масштаб 100%">
+        <button className="btn sm zoom-label" onClick={() => zoomBy(1 / viewport.z)} title={tr("Масштаб 100%")}>
           {Math.round(viewport.z * 100)}%
         </button>
-        <button className="btn sm" onClick={() => zoomBy(1.2)} aria-label="Приблизить">
+        <button className="btn sm" onClick={() => zoomBy(1.2)} aria-label={tr("Приблизить")}>
           <Icon name="plus" />
         </button>
-        <button className="btn sm" onClick={() => fitAll(ref.current)} title="Показать все экраны (Shift+1)">
+        <button className="btn sm" onClick={() => fitAll(ref.current)} title={tr("Показать все экраны (Shift+1)")}>
           <Icon name="fit" />
         </button>
         <button
           className={`btn sm${snapOff ? "" : " on"}`}
           onClick={() => useEditor.getState().setSnapOff(!snapOff)}
-          title="Привязка к направляющим (удерживайте Ctrl, чтобы временно отключить)"
+          title={tr("Привязка к направляющим (удерживайте Ctrl, чтобы временно отключить)")}
           aria-pressed={!snapOff}
         >
           <Icon name="magnet" />

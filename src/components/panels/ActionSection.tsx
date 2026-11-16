@@ -3,6 +3,7 @@ import type { Action, Element, TransitionKind } from "../../lib/model";
 import { TRANSITIONS } from "../../lib/validate";
 import { useEditor } from "../../store/editor";
 import { patchSelected } from "./Inspector";
+import { tr } from "../../lib/i18n";
 
 type ActionType = "none" | "to" | "back" | "link";
 
@@ -22,7 +23,7 @@ export function ActionSection({ el }: { el: Element }) {
 
   return (
     <div className="section">
-      <h3>Действие по нажатию</h3>
+      <h3>{tr("Действие по нажатию")}</h3>
       <select
         className="input"
         value={type}
@@ -35,10 +36,10 @@ export function ActionSection({ el }: { el: Element }) {
           else set({ to: others[0]?.id ?? screens[0]!.id, transition: "slideLeft" });
         }}
       >
-        <option value="none">Нет</option>
-        <option value="to">Перейти на экран</option>
-        <option value="back">Назад</option>
-        <option value="link">Открыть ссылку</option>
+        <option value="none">{tr("Нет")}</option>
+        <option value="to">{tr("Перейти на экран")}</option>
+        <option value="back">{tr("Назад")}</option>
+        <option value="link">{tr("Открыть ссылку")}</option>
       </select>
       {el.action && "to" in el.action && (
         <>
@@ -61,7 +62,7 @@ export function ActionSection({ el }: { el: Element }) {
           >
             {TRANSITIONS.map((t) => (
               <option key={t} value={t}>
-                {TRANSITION_LABELS[t]}
+                {tr(TRANSITION_LABELS[t])}
               </option>
             ))}
           </select>

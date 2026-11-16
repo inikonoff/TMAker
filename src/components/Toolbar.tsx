@@ -1,13 +1,17 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { emptyProject } from "../lib/defaults";
+import { LANGS } from "../lib/i18n";
 import { resetHistory, useEditor } from "../store/editor";
-import { AiDialog } from "./ai/AiDialog";
-import { DataDialog } from "./data/DataDialog";
-import { ExportDialog } from "./export/ExportDialog";
 import { pickJson, saveJson } from "./files";
 import { HOTKEYS } from "./hotkeys";
 import { Icon } from "./Icon";
 import { runTidy } from "./tidyAction";
+import { tr } from "../lib/i18n";
+
+// Окна грузятся по требованию: fflate и html-to-image нужны только при экспорте.
+const AiDialog = lazy(() => import("./ai/AiDialog").then((m) => ({ default: m.AiDialog })));
+const DataDialog = lazy(() => import("./data/DataDialog").then((m) => ({ default: m.DataDialog })));
+const ExportDialog = lazy(() => import("./export/ExportDialog").then((m) => ({ default: m.ExportDialog })));
 
 function Menu({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -45,52 +49,52 @@ export function Toolbar({ extra }: { extra?: React.ReactNode }) {
 
   return (
     <header className="topbar">
-      <div className="brand">
+      <div className="brand hide-mobile">
         TMA<span>·</span>Builder
       </div>
       <span className="hint hide-mobile" style={{ maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
         {title}
       </span>
       <span className="sep" />
-      <button className="btn" disabled={!canUndo || mode === "run"} onClick={() => st().undo()} title="Отменить (Ctrl+Z)" aria-label="Отменить">
+      <button className="btn" disabled={!canUndo || mode === "run"} onClick={() => st().undo()} title={tr("Отменить (Ctrl+Z)")} aria-label={tr("Отменить")}>
         <Icon name="undo" />
       </button>
-      <button className="btn" disabled={!canRedo || mode === "run"} onClick={() => st().redo()} title="Вернуть (Ctrl+Shift+Z)" aria-label="Вернуть">
+      <button className="btn" disabled={!canRedo || mode === "run"} onClick={() => st().redo()} title={tr("Вернуть (Ctrl+Shift+Z)")} aria-label={tr("Вернуть")}>
         <Icon name="redo" />
       </button>
-      <button className="btn hide-mobile" disabled={mode === "run"} onClick={runTidy} title="Упорядочить экран (Shift+T). Повторное нажатие отменяет">
-        <Icon name="tidy" /> Упорядочить
+      <button className="btn hide-mobile" disabled={mode === "run"} onClick={runTidy} title={tr("Упорядочить экран (Shift+T). Повторное нажатие отменяет")}>
+        <Icon name="tidy" /> {tr("Упорядочить")}
       </button>
-      <button className="btn" disabled={mode === "run"} onClick={() => setDataOpen(true)} title="Таблицы данных и команды бота">
-        <Icon name="db" /> <span className="hide-mobile">Данные</span>
+      <button className="btn" disabled={mode === "run"} onClick={() => setDataOpen(true)} title={tr("Таблицы данных и команды бота")}>
+        <Icon name="db" /> <span className="hide-mobile">{tr("Данные")}</span>
       </button>
-      {dataOpen && <DataDialog onClose={() => setDataOpen(false)} />}
-      <button className="btn" disabled={mode === "run"} onClick={() => setAiOpen(true)} title="ИИ: экран по описанию, схема данных, тексты">
-        <Icon name="ai" /> <span className="hide-mobile">ИИ</span>
+      {dataOpen && <Suspense fallback={null}><DataDialog onClose={() => setDataOpen(false)} /></Suspense>}
+      <button className="btn" disabled={mode === "run"} onClick={() => setAiOpen(true)} title={tr("ИИ: экран по описанию, схема данных, тексты")}>
+        <Icon name="ai" /> <span className="hide-mobile">{tr("ИИ")}</span>
       </button>
-      {aiOpen && <AiDialog onClose={() => setAiOpen(false)} />}
+      {aiOpen && <Suspense fallback={null}><AiDialog onClose={() => setAiOpen(false)} /></Suspense>}
       {extra}
       <span className="spacer" />
       <button
         className={`btn ${mode === "run" ? "on" : "primary"}`}
         onClick={() => st().setMode(mode === "run" ? "edit" : "run")}
-        title="Запустить сценарий (P)"
+        title={tr("Запустить сценарий (P)")}
       >
-        <Icon name={mode === "run" ? "stop" : "play"} /> {mode === "run" ? "Стоп" : "Запустить"}
+        <Icon name={mode === "run" ? "stop" : "play"} /> <span className="hide-mobile">{mode === "run" ? tr("Стоп") : tr("Запустить")}</span>
       </button>
-      <button className="btn ghost-line" onClick={() => setExporting(true)} title="Экспорт: папка для VS Code, ZIP, ссылка">
-        <Icon name="download" /> <span className="hide-mobile">Экспорт</span>
+      <button className="btn ghost-line" onClick={() => setExporting(true)} title={tr("Экспорт: папка для VS Code, ZIP, ссылка")}>
+        <Icon name="download" /> <span className="hide-mobile">{tr("Экспорт")}</span>
       </button>
-      {exporting && <ExportDialog onClose={() => setExporting(false)} />}
+      {exporting && <Suspense fallback={null}><ExportDialog onClose={() => setExporting(false)} /></Suspense>}
       <button
         className="btn"
         onClick={() => st().setEditorTheme(editorTheme === "light" ? "dark" : "light")}
-        title="Тема редактора"
-        aria-label="Тема редактора"
+        title={tr("Тема редактора")}
+        aria-label={tr("Тема редактора")}
       >
         <Icon name={editorTheme === "light" ? "moon" : "sun"} />
       </button>
-      <button className="btn" onClick={() => setMenu(menu === "file" ? null : "file")} aria-haspopup="menu" aria-label="Меню">
+      <button className="btn" onClick={() => setMenu(menu === "file" ? null : "file")} aria-haspopup="menu" aria-label={tr("Меню")}>
         <Icon name="more" />
       </button>
       {menu === "file" && (
@@ -99,11 +103,11 @@ export function Toolbar({ extra }: { extra?: React.ReactNode }) {
             className="menu-item"
             onClick={() => {
               close();
-              if (!confirm("Начать новый проект? Текущий можно вернуть через Отменить.")) return;
+              if (!confirm(tr("Начать новый проект? Текущий можно вернуть через Отменить."))) return;
               st().replaceProject(emptyProject());
             }}
           >
-            <Icon name="file" /> Новый проект
+            <Icon name="file" /> {tr("Новый проект")}
           </button>
           <button
             className="menu-item"
@@ -112,7 +116,7 @@ export function Toolbar({ extra }: { extra?: React.ReactNode }) {
               pickJson();
             }}
           >
-            <Icon name="upload" /> Открыть JSON…
+            <Icon name="upload" /> {tr("Открыть JSON…")}
           </button>
           <button
             className="menu-item"
@@ -121,20 +125,30 @@ export function Toolbar({ extra }: { extra?: React.ReactNode }) {
               saveJson();
             }}
           >
-            <Icon name="download" /> Сохранить JSON
+            <Icon name="download" /> {tr("Сохранить JSON")}
           </button>
+          <div className="menu-item" style={{ cursor: "default" }}>
+            {tr("Язык")}
+            <span style={{ marginLeft: "auto", display: "flex", gap: 2 }}>
+              {LANGS.map((l) => (
+                <button key={l.id} className={`btn sm${useEditor.getState().lang === l.id ? " on" : ""}`} onClick={() => st().setLanguage(l.id)}>
+                  {l.id.toUpperCase()}
+                </button>
+              ))}
+            </span>
+          </div>
           <button className="menu-item" onClick={() => setMenu("keys")}>
-            <Icon name="settings" /> Горячие клавиши
+            <Icon name="settings" /> {tr("Горячие клавиши")}
           </button>
           <button
             className="menu-item"
             onClick={() => {
               close();
               resetHistory();
-              st().showToast("История очищена");
+              st().showToast(tr("История очищена"));
             }}
           >
-            <Icon name="trash" /> Очистить историю
+            <Icon name="trash" /> {tr("Очистить историю")}
           </button>
         </Menu>
       )}
@@ -145,8 +159,8 @@ export function Toolbar({ extra }: { extra?: React.ReactNode }) {
               <tbody>
                 {HOTKEYS.map(([k, d]) => (
                   <tr key={k}>
-                    <td style={{ padding: "4px 12px 4px 0", whiteSpace: "nowrap", fontFamily: "ui-monospace, monospace", fontSize: 12 }}>{k}</td>
-                    <td style={{ padding: "4px 0", color: "var(--muted)" }}>{d}</td>
+                    <td style={{ padding: "4px 12px 4px 0", whiteSpace: "nowrap", fontFamily: "ui-monospace, monospace", fontSize: 12 }}>{tr(k)}</td>
+                    <td style={{ padding: "4px 0", color: "var(--muted)" }}>{tr(d)}</td>
                   </tr>
                 ))}
               </tbody>

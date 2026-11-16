@@ -6,6 +6,7 @@ import type { Element } from "../../lib/model";
 import { movedElement, updateElements } from "../../lib/ops";
 import { useEditor } from "../../store/editor";
 import { Icon } from "../Icon";
+import { tr } from "../../lib/i18n";
 
 const ALIGN: { mode: AlignMode; label: string; title: string }[] = [
   { mode: "left", label: "⇤", title: "По левому краю" },
@@ -49,10 +50,10 @@ export function ArrangeSection() {
   };
   return (
     <div className="section">
-      <h3>Расположение</h3>
+      <h3>{tr("Расположение")}</h3>
       <div className="row" style={{ gap: 2 }}>
         {ALIGN.map((a) => (
-          <button key={a.mode} className="btn sm" title={a.title} onClick={() => applyRects((els, frame) => alignRects(els, a.mode, frame))}>
+          <button key={a.mode} className="btn sm" title={tr(a.title)} onClick={() => applyRects((els, frame) => alignRects(els, a.mode, frame))}>
             {a.label}
           </button>
         ))}
@@ -60,16 +61,16 @@ export function ArrangeSection() {
       {sel.length > 2 && (
         <div className="row" style={{ gap: 4 }}>
           <button className="btn sm ghost-line" onClick={() => applyRects((els) => distributeRects(els, "x"))}>
-            Распределить ↔
+            {tr("Распределить ↔")}
           </button>
           <button className="btn sm ghost-line" onClick={() => applyRects((els) => distributeRects(els, "y"))}>
-            Распределить ↕
+            {tr("Распределить ↕")}
           </button>
         </div>
       )}
       {sel.length > 1 && (
         <button className={`btn sm ghost-line${grouped ? " on" : ""}`} onClick={toggleGroup} title="Ctrl+G / Ctrl+Shift+G">
-          <Icon name="group" size={15} /> {grouped ? "Разгруппировать" : "Сгруппировать"}
+          <Icon name="group" size={15} /> {grouped ? tr("Разгруппировать") : tr("Сгруппировать")}
         </button>
       )}
     </div>

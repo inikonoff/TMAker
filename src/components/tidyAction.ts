@@ -4,6 +4,7 @@ import { screenSize } from "../lib/devices";
 import type { Element, Project } from "../lib/model";
 import { elementsOf, updateElements } from "../lib/ops";
 import { useEditor } from "../store/editor";
+import { tr } from "../lib/i18n";
 
 let lastTidied: Project | null = null;
 
@@ -12,7 +13,7 @@ export function runTidy() {
   if (lastTidied && st.project === lastTidied) {
     lastTidied = null;
     st.undo();
-    st.showToast("Порядок отменён");
+    st.showToast(tr("Порядок отменён"));
     return;
   }
   const screen = st.project.screens.find((s) => s.id === st.activeScreen);

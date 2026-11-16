@@ -11,6 +11,7 @@ import type { Project } from "../../lib/model";
 import { elementsOf } from "../../lib/ops";
 import { getImageBlob } from "../../store/images";
 import { RunScreen } from "../run/RunScreen";
+import { tr } from "../../lib/i18n";
 
 const EXT: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/gif": "gif", "image/svg+xml": "svg" };
 
@@ -74,10 +75,10 @@ export async function prepareExport(
   opts: { scaffold: boolean; dialect: ExportOptions["dialect"]; screenshots: boolean },
   onStatus: (s: string) => void,
 ): Promise<ExportFiles> {
-  onStatus("Картинки…");
+  onStatus(tr("Картинки…"));
   const images = await collectImages(p);
-  const shots = opts.screenshots ? await captureScreens(p, (i, n) => onStatus(`Скриншоты ${i}/${n}…`)) : new Map();
-  onStatus("Файлы…");
+  const shots = opts.screenshots ? await captureScreens(p, (i, n) => onStatus(tr("Скриншоты {i}/{n}…", { i, n }))) : new Map();
+  onStatus(tr("Файлы…"));
   return buildExportFiles(p, { scaffold: opts.scaffold, dialect: opts.dialect, images, screenshots: shots });
 }
 

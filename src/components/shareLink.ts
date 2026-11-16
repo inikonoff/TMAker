@@ -2,6 +2,7 @@
 import { decodeDocz, encodeDocz } from "../lib/docz";
 import { useEditor } from "../store/editor";
 import { openJsonText } from "./files";
+import { tr } from "../lib/i18n";
 
 export async function openFromHash() {
   const m = location.hash.match(/^#docz=(.+)$/);
@@ -10,7 +11,7 @@ export async function openFromHash() {
     const json = await decodeDocz(m[1]!);
     if (openJsonText(json)) history.replaceState(null, "", location.pathname + location.search);
   } catch {
-    useEditor.getState().showToast("Ссылка повреждена");
+    useEditor.getState().showToast(tr("Ссылка повреждена"));
   }
 }
 
@@ -29,9 +30,9 @@ export async function copyShareLink() {
   const url = `${location.origin}${location.pathname}#docz=${z}`;
   try {
     await navigator.clipboard.writeText(url);
-    st.showToast(dropped ? `Ссылка скопирована (без ${dropped} локальных картинок)` : "Ссылка скопирована");
+    st.showToast(dropped ? tr("Ссылка скопирована (без {n} локальных картинок)", { n: dropped }) : tr("Ссылка скопирована"));
   } catch {
-    prompt("Скопируйте ссылку:", url);
+    prompt(tr("Скопируйте ссылку:"), url);
   }
   return url;
 }

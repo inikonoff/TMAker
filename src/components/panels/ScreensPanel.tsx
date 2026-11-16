@@ -6,6 +6,7 @@ import { addScreen, deleteScreen, duplicateScreen, reorderScreens, setScreenDevi
 import { useEditor } from "../../store/editor";
 import { focusScreen } from "../canvas/Canvas";
 import { Icon } from "../Icon";
+import { tr } from "../../lib/i18n";
 
 /** Пружина раскрытия места: одинаковая у обеих сторон, чтобы сдвиги гасили друг друга. */
 const SWIPE_NAMES = { left: "←", right: "→", up: "↑", down: "↓" } as const;
@@ -40,7 +41,7 @@ function ScreenRow({ s, index, active, onDragEnd }: { s: Screen; index: number; 
       }}
       onDoubleClick={() => setEditing(true)}
     >
-      <span className="grip" onPointerDown={(e) => controls.start(e)} aria-label="Перетащить">
+      <span className="grip" onPointerDown={(e) => controls.start(e)} aria-label={tr("Перетащить")}>
         <Icon name="grip" size={16} />
       </span>
       {editing ? (
@@ -59,11 +60,11 @@ function ScreenRow({ s, index, active, onDragEnd }: { s: Screen; index: number; 
           onClick={(e) => e.stopPropagation()}
         />
       ) : (
-        <span className="name" title="Двойной клик — переименовать">
+        <span className="name" title={tr("Двойной клик — переименовать")}>
           {index + 1}. {s.name}
         </span>
       )}
-      <span className="meta">{deviceLabel(device)}</span>
+      <span className="meta">{tr(deviceLabel(device))}</span>
     </Reorder.Item>
   );
 }
@@ -101,7 +102,7 @@ export function ScreensPanel() {
   };
 
   const remove = () => {
-    if (project.screens.length <= 1) return useEditor.getState().showToast("Последний экран удалить нельзя");
+    if (project.screens.length <= 1) return useEditor.getState().showToast(tr("Последний экран удалить нельзя"));
     commit((p) => deleteScreen(p, active));
   };
 
@@ -110,8 +111,8 @@ export function ScreensPanel() {
     <>
       <div className="section">
         <h3>
-          Экраны
-          <button className="btn sm" onClick={add} title="Добавить экран">
+          {tr("Экраны")}
+          <button className="btn sm" onClick={add} title={tr("Добавить экран")}>
             <Icon name="plus" />
           </button>
         </h3>
@@ -132,9 +133,9 @@ export function ScreensPanel() {
       </div>
       {activeScreen && (
         <div className="section">
-          <h3>Экран</h3>
+          <h3>{tr("Экран")}</h3>
           <div className="row">
-            <label>Устройство</label>
+            <label>{tr("Устройство")}</label>
             <select
               className="input"
               value={typeof activeScreen.device === "string" ? activeScreen.device : activeScreen.device ? "custom" : ""}
@@ -145,20 +146,20 @@ export function ScreensPanel() {
                 );
               }}
             >
-              <option value="">Как у проекта ({deviceLabel(project.device)})</option>
+              <option value="">{tr("Как у проекта (")}{deviceLabel(project.device)})</option>
               {Object.values(DEVICE_PRESETS).map((d) => (
                 <option key={d.id} value={d.id}>
-                  {d.label} {d.w}×{d.h}
+                  {tr(d.label)} {d.w}×{d.h}
                 </option>
               ))}
-              <option value="custom">Свой размер</option>
+              <option value="custom">{tr("Свой размер")}</option>
             </select>
           </div>
           {typeof activeScreen.device === "object" && (
             <div className="grid2">
               {(["w", "h"] as const).map((k) => (
                 <label className="field" key={k}>
-                  <span>{k === "w" ? "Ш" : "В"}</span>
+                  <span>{k === "w" ? tr("Ш") : tr("В")}</span>
                   <input
                     type="number"
                     min={120}
@@ -176,16 +177,16 @@ export function ScreensPanel() {
           )}
           <div className="row" style={{ gap: 4 }}>
             <button className="btn sm ghost-line" onClick={duplicate}>
-              <Icon name="copy" size={15} /> Дублировать
+              <Icon name="copy" size={15} /> {tr("Дублировать")}
             </button>
             <button className="btn sm ghost-line danger" onClick={remove}>
-              <Icon name="trash" size={15} /> Удалить
+              <Icon name="trash" size={15} /> {tr("Удалить")}
             </button>
           </div>
-          <div className="hint" style={{ margin: "4px 0 6px" }}>Свайп по экрану ведёт на…</div>
+          <div className="hint" style={{ margin: "4px 0 6px" }}>{tr("Свайп по экрану ведёт на…")}</div>
           <div className="grid2">
             {(["left", "right", "up", "down"] as const).map((d) => (
-              <label className="field" key={d} title={`Свайп ${SWIPE_NAMES[d]}`}>
+              <label className="field" key={d} title={`${tr("Свайп")} ${SWIPE_NAMES[d]}`}>
                 <span>{SWIPE_NAMES[d]}</span>
                 <select
                   value={activeScreen.swipe?.[d] ?? ""}
@@ -215,13 +216,13 @@ export function ScreensPanel() {
             ))}
           </div>
           <label className="hint" htmlFor="screen-note">
-            Заметка для модели
+            {tr("Заметка для модели")}
           </label>
           <textarea
             id="screen-note"
             className="input"
             value={activeScreen.note}
-            placeholder="Что происходит на экране, откуда приходят данные…"
+            placeholder={tr("Что происходит на экране, откуда приходят данные…")}
             onChange={(e) => commit((p) => updateScreen(p, activeScreen.id, { note: e.target.value }), `note-${activeScreen.id}`)}
           />
         </div>
