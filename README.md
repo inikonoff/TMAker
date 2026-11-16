@@ -108,8 +108,9 @@ proxy/         прокси для Groq на Cloudflare Workers
 
 ## Деплой на GitHub Pages
 
-Workflow `.github/workflows/pages.yml` на каждый push в `main` прогоняет typecheck, тесты и сборку и публикует `dist/`.
-В настройках репозитория: Settings → Pages → Source: **GitHub Actions**. Сборка использует относительный `base`,
+Workflow `.github/workflows/pages.yml` на каждый push прогоняет typecheck, тесты и сборку, а из ветки по умолчанию
+ещё и публикует `dist/`. В настройках репозитория: Settings → Pages → Source: **GitHub Actions**.
+С источником «Deploy from a branch» GitHub отдаёт исходники без сборки — будет пустая страница (с подсказкой через 4 с). Сборка использует относительный `base`,
 поэтому работает из любой подпапки.
 
 Публикуйте сборку только для себя: ключ ИИ вводится в браузере и хранится локально, но инструмент рассчитан на личное
