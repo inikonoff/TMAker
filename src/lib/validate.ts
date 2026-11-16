@@ -108,7 +108,7 @@ function content(v: unknown): Content | undefined {
   if (!isObj(v)) return undefined;
   const c: Content = {};
   if (typeof v.text === "string") c.text = v.text.slice(0, 5000);
-  if (typeof v.image === "string" && /^(idb:|https?:|data:image\/)/.test(v.image)) c.image = v.image;
+  if (typeof v.image === "string" && /^(idb:|https?:|data:image\/|assets\/images\/[\w.-]+$)/.test(v.image)) c.image = v.image;
   if (v.imageFit !== undefined) c.imageFit = oneOf(v.imageFit, FITS, "cover");
   if (typeof v.icon === "string") c.icon = v.icon.slice(0, 64);
   if (v.shape !== undefined) c.shape = oneOf(v.shape, SHAPES, "rect");

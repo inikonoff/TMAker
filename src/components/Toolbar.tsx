@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { emptyProject } from "../lib/defaults";
 import { resetHistory, useEditor } from "../store/editor";
+import { ExportDialog } from "./export/ExportDialog";
 import { pickJson, saveJson } from "./files";
 import { HOTKEYS } from "./hotkeys";
 import { Icon } from "./Icon";
@@ -35,6 +36,7 @@ export function Toolbar({ extra }: { extra?: React.ReactNode }) {
   const title = useEditor((s) => s.project.title);
   const st = useEditor.getState;
   const [menu, setMenu] = useState<null | "file" | "keys">(null);
+  const [exporting, setExporting] = useState(false);
   const close = () => setMenu(null);
 
   return (
@@ -64,6 +66,10 @@ export function Toolbar({ extra }: { extra?: React.ReactNode }) {
       >
         <Icon name={mode === "run" ? "stop" : "play"} /> {mode === "run" ? "Стоп" : "Запустить"}
       </button>
+      <button className="btn ghost-line" onClick={() => setExporting(true)} title="Экспорт: папка для VS Code, ZIP, ссылка">
+        <Icon name="download" /> <span className="hide-mobile">Экспорт</span>
+      </button>
+      {exporting && <ExportDialog onClose={() => setExporting(false)} />}
       <button
         className="btn"
         onClick={() => st().setEditorTheme(editorTheme === "light" ? "dark" : "light")}
