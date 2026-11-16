@@ -860,3 +860,55 @@ code {
     transform: translateY(8px) scale(0.98);
   }
 }
+
+.modal.wide {
+  width: min(760px, 100%);
+}
+
+.data-grid {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 16px;
+  min-height: 260px;
+}
+
+.data-tables {
+  border-right: 1px solid var(--line);
+  padding-right: 12px;
+}
+
+.menu-item.on {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+table.fields {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 8px;
+}
+
+table.fields th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 4px;
+}
+
+table.fields td {
+  padding: 3px 4px;
+  vertical-align: middle;
+}
+
+@media (max-width: 640px) {
+  .data-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .data-tables {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 0 0 8px;
+  }
+}

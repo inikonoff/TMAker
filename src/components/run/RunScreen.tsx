@@ -27,7 +27,9 @@ export const RunScreen = memo(function RunScreen({ screen, elements, tokens, w, 
   // Переключатели и флажки живые в превью, но в проект не пишутся.
   const [local, setLocal] = useState<Record<string, Partial<NonNullable<Element["content"]>>>>({});
   return (
-    <div style={{ position: "absolute", inset: 0, width: w, height: h, background: resolveColor(screen.bg, tokens, tokens.bg), overflow: "hidden" }}>
+    <div
+      style={{ position: "absolute", inset: 0, width: w, height: h, background: resolveColor(screen.bg, tokens, tokens.bg), overflow: "hidden", color: tokens.text, "--tk-accent": tokens.accent, "--tk-on-accent": tokens.onAccent } as React.CSSProperties}
+    >
       {elements.map((el) => {
         if (el.hidden) return null;
         const override = local[el.id];

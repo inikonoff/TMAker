@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { emptyProject } from "../lib/defaults";
 import { resetHistory, useEditor } from "../store/editor";
+import { DataDialog } from "./data/DataDialog";
 import { ExportDialog } from "./export/ExportDialog";
 import { pickJson, saveJson } from "./files";
 import { HOTKEYS } from "./hotkeys";
@@ -37,6 +38,7 @@ export function Toolbar({ extra }: { extra?: React.ReactNode }) {
   const st = useEditor.getState;
   const [menu, setMenu] = useState<null | "file" | "keys">(null);
   const [exporting, setExporting] = useState(false);
+  const [dataOpen, setDataOpen] = useState(false);
   const close = () => setMenu(null);
 
   return (
@@ -57,6 +59,10 @@ export function Toolbar({ extra }: { extra?: React.ReactNode }) {
       <button className="btn hide-mobile" disabled={mode === "run"} onClick={runTidy} title="Упорядочить экран (Shift+T). Повторное нажатие отменяет">
         <Icon name="tidy" /> Упорядочить
       </button>
+      <button className="btn" disabled={mode === "run"} onClick={() => setDataOpen(true)} title="Таблицы данных и команды бота">
+        <Icon name="db" /> <span className="hide-mobile">Данные</span>
+      </button>
+      {dataOpen && <DataDialog onClose={() => setDataOpen(false)} />}
       {extra}
       <span className="spacer" />
       <button

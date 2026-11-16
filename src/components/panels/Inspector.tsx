@@ -7,6 +7,7 @@ import { putImage } from "../../store/images";
 import { Icon } from "../Icon";
 import { ActionSection } from "./ActionSection";
 import { ArrangeSection } from "./ArrangeSection";
+import { BindSection } from "./BindSection";
 import { ColorInput, NumField, Row, Seg } from "./controls";
 
 const TEXT_KINDS = new Set(["button", "text", "card", "badge", "checkbox", "mainButton", "backButton", "headerBar", "input"]);
@@ -328,6 +329,7 @@ export function Inspector() {
       )}
 
       {!multi && !lineLike && <ActionSection el={el} />}
+      {!multi && <BindSection el={el} />}
     </>
   );
 }

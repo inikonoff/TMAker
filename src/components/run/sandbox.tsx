@@ -32,6 +32,7 @@ function SandboxForm({ el, table, onAdd }: { el: Element; table: Table; onAdd: (
         if (!err) setValues({});
       }}
     >
+      {el.content?.text && <div className="sb-title">{el.content.text}</div>}
       {table.fields.map((f) =>
         f.type === "boolean" ? (
           <label key={f.name} className="sb-check">
@@ -52,7 +53,7 @@ function SandboxForm({ el, table, onAdd }: { el: Element; table: Table; onAdd: (
       )}
       {error && <div className="sb-error">{error}</div>}
       <button type="submit" className="sb-submit">
-        {el.content?.text || "Добавить"}
+        Добавить
       </button>
     </form>
   );
