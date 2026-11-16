@@ -8,6 +8,8 @@ import { focusScreen } from "../canvas/Canvas";
 import { Icon } from "../Icon";
 
 /** Пружина раскрытия места: одинаковая у обеих сторон, чтобы сдвиги гасили друг друга. */
+const SWIPE_NAMES = { left: "←", right: "→", up: "↑", down: "↓" } as const;
+
 const REORDER_SPRING = { type: "spring", stiffness: 700, damping: 42, mass: 0.55 } as const;
 
 function ScreenRow({ s, index, active, onDragEnd }: { s: Screen; index: number; active: boolean; onDragEnd: () => void }) {
@@ -179,6 +181,38 @@ export function ScreensPanel() {
             <button className="btn sm ghost-line danger" onClick={remove}>
               <Icon name="trash" size={15} /> Удалить
             </button>
+          </div>
+          <div className="hint" style={{ margin: "4px 0 6px" }}>Свайп по экрану ведёт на…</div>
+          <div className="grid2">
+            {(["left", "right", "up", "down"] as const).map((d) => (
+              <label className="field" key={d} title={`Свайп ${SWIPE_NAMES[d]}`}>
+                <span>{SWIPE_NAMES[d]}</span>
+                <select
+                  value={activeScreen.swipe?.[d] ?? ""}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    commit((p) => {
+                      const s = p.screens.find((x) => x.id === activeScreen.id)!;
+                      const sw = { ...s.swipe };
+                      if (v) sw[d] = v;
+                      else delete sw[d];
+                      const next: Screen = { ...s, swipe: sw };
+                      if (Object.keys(sw).length === 0) delete next.swipe;
+                      return { ...p, screens: p.screens.map((x) => (x.id === s.id ? next : x)) };
+                    });
+                  }}
+                >
+                  <option value="">—</option>
+                  {project.screens
+                    .filter((x) => x.id !== activeScreen.id)
+                    .map((x) => (
+                      <option key={x.id} value={x.id}>
+                        {x.name}
+                      </option>
+                    ))}
+                </select>
+              </label>
+            ))}
           </div>
           <label className="hint" htmlFor="screen-note">
             Заметка для модели

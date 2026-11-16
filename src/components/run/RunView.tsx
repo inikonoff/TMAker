@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Tokens } from "../../lib/color";
 import { telegramTokens, TELEGRAM_THEMES, themeTokens } from "../../lib/color";
 import { screenSize } from "../../lib/devices";
-import type { Element, Project, Swipe, TransitionKind } from "../../lib/model";
+import type { Element, Swipe, TransitionKind } from "../../lib/model";
 import { elementsOf } from "../../lib/ops";
 import type { Direction, Pose } from "../../lib/transitions";
 import {
@@ -26,6 +26,7 @@ import { useEditor } from "../../store/editor";
 import { prefersReducedMotion } from "../canvas/gestures";
 import { Icon } from "../Icon";
 import { useSandbox } from "./sandbox";
+import { useRunBus } from "./runBus";
 import type { RunHandlers } from "./RunScreen";
 import { RunScreen } from "./RunScreen";
 
@@ -55,7 +56,13 @@ function Layer({
     return `translate(${p.x * w}px, ${p.y * h}px) scale(${p.scale})`;
   });
   const opacity = useTransform(progress, (t) => lerpPose(from, to, t).opacity);
-  return <motion.div style={{ position: "absolute", inset: 0, transform, opacity, zIndex: z, transformOrigin: "50% 50%" }}>{children}</motion.div>;
+  return (
+    <motion.div
+      style={{ position: "absolute", inset: 0, transform, opacity, zIndex: z, transformOrigin: "50% 50%", boxShadow: z === 2 ? "0 0 28px rgba(0,0,0,.14)" : undefined }}
+    >
+      {children}
+    </motion.div>
+  );
 }
 
 export function RunView() {
@@ -87,12 +94,20 @@ export function RunView() {
     return () => ro.disconnect();
   }, []);
 
-  const current = stack[stack.length - 1]!;
   const byId = useMemo(() => new Map(project.screens.map((s) => [s.id, s])), [project.screens]);
-  if (!byId.has(current.id) && project.screens[0]) {
-    // Экран удалили во время запуска — начинаем с первого.
-    stack.splice(0, stack.length, { id: project.screens[0].id, via: "none" });
-  }
+  // Экран удалили во время запуска — начинаем с первого.
+  const top = stack[stack.length - 1]!;
+  const current = byId.has(top.id) ? top : { id: project.screens[0]?.id ?? top.id, via: "none" as TransitionKind };
+
+  useEffect(() => {
+    useRunBus.setState({ current: current.id, visited: [...new Set([...useRunBus.getState().visited, ...stack.map((s) => s.id)])] });
+  }, [current.id, stack]);
+  useEffect(() => () => useRunBus.setState({ current: null, visited: [], jump: null }), []);
+  const jump = useRunBus((s) => s.jump);
+  useEffect(() => {
+    if (jump) go(jump.id, "fade");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jump]);
 
   const sizeOf = useCallback((id: string) => {
     const s = byId.get(id);
@@ -337,4 +352,3 @@ function backDir(via: TransitionKind): keyof Swipe {
   return "right";
 }
 
-export type { Project };

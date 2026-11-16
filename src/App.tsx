@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Canvas, fitAll } from "./components/canvas/Canvas";
 import { useHotkeys } from "./components/hotkeys";
 import { Inspector } from "./components/panels/Inspector";
+import { FlowMap } from "./components/panels/FlowMap";
 import { Palette } from "./components/panels/Palette";
 import { ProjectPanel } from "./components/panels/ProjectPanel";
 import { ScreensPanel } from "./components/panels/ScreensPanel";
@@ -36,8 +37,9 @@ export function App() {
     <div className={`app${mode === "run" ? " run" : ""}`}>
       <Toolbar />
       <aside className={`panel left${tab === "screens" ? " open" : ""}`} aria-label="Экраны и элементы">
-        <ScreensPanel />
+        {mode === "run" ? <FlowMap /> : <ScreensPanel />}
         {mode === "edit" && <Palette />}
+        {mode === "edit" && <FlowMap />}
       </aside>
       <main className="main">{mode === "run" ? <RunView /> : <Canvas />}</main>
       {mode === "edit" && (
