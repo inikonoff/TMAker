@@ -109,7 +109,7 @@ export function ScreensPanel() {
   const byId = new Map(project.screens.map((s) => [s.id, s]));
   return (
     <>
-      <div className="section">
+      <div className="section" data-tour="screens">
         <h3>
           {tr("Экраны")}
           <button className="btn sm" onClick={add} title={tr("Добавить экран")}>

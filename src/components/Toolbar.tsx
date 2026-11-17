@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { LANGS } from "../lib/i18n";
+import { startTour } from "./onboarding/Tour";
 import { resetHistory, useEditor } from "../store/editor";
 import { pickJson, saveJson } from "./files";
 import { HOTKEYS } from "./hotkeys";
@@ -77,11 +78,11 @@ export function Toolbar({ extra }: { extra?: React.ReactNode }) {
       <button className="btn hide-mobile" disabled={mode === "run"} onClick={runTidy} title={tr("Упорядочить экран (Shift+T). Повторное нажатие отменяет")}>
         <Icon name="tidy" /> {tr("Упорядочить")}
       </button>
-      <button className="btn" disabled={mode === "run"} onClick={() => setDataOpen(true)} title={tr("Таблицы данных и команды бота")}>
+      <button className="btn" data-tour="data" disabled={mode === "run"} onClick={() => setDataOpen(true)} title={tr("Таблицы данных и команды бота")}>
         <Icon name="db" /> <span className="hide-mobile">{tr("Данные")}</span>
       </button>
       {dataOpen && <Suspense fallback={null}><DataDialog onClose={() => setDataOpen(false)} /></Suspense>}
-      <button className="btn" disabled={mode === "run"} onClick={() => setAiOpen(true)} title={tr("ИИ: экран по описанию, схема данных, тексты")}>
+      <button className="btn" data-tour="ai" disabled={mode === "run"} onClick={() => setAiOpen(true)} title={tr("ИИ: экран по описанию, схема данных, тексты")}>
         <Icon name="ai" /> <span className="hide-mobile">{tr("ИИ")}</span>
       </button>
       {aiOpen && <Suspense fallback={null}><AiDialog onClose={() => setAiOpen(false)} /></Suspense>}
@@ -90,14 +91,18 @@ export function Toolbar({ extra }: { extra?: React.ReactNode }) {
       <button
         className={`btn ${mode === "run" ? "on" : "primary"}`}
         onClick={() => st().setMode(mode === "run" ? "edit" : "run")}
+        data-tour="run"
         title={tr("Запустить сценарий (P)")}
       >
         <Icon name={mode === "run" ? "stop" : "play"} /> <span className="hide-mobile">{mode === "run" ? tr("Стоп") : tr("Запустить")}</span>
       </button>
-      <button className="btn ghost-line" onClick={() => setExporting(true)} title={tr("Экспорт: папка для VS Code, ZIP, ссылка")}>
+      <button className="btn ghost-line" data-tour="export" onClick={() => setExporting(true)} title={tr("Экспорт: папка для VS Code, ZIP, ссылка")}>
         <Icon name="download" /> <span className="hide-mobile">{tr("Экспорт")}</span>
       </button>
       {exporting && <Suspense fallback={null}><ExportDialog onClose={() => setExporting(false)} /></Suspense>}
+      <button className="btn" data-tour="help" onClick={startTour} title={tr("Пройти обучение")} aria-label={tr("Пройти обучение")}>
+        <Icon name="help" />
+      </button>
       <button
         className="btn"
         onClick={() => st().setEditorTheme(editorTheme === "light" ? "dark" : "light")}
@@ -157,6 +162,15 @@ export function Toolbar({ extra }: { extra?: React.ReactNode }) {
               ))}
             </span>
           </div>
+          <button
+            className="menu-item"
+            onClick={() => {
+              close();
+              startTour();
+            }}
+          >
+            <Icon name="help" /> {tr("Пройти обучение")}
+          </button>
           <button className="menu-item" onClick={() => setMenu("keys")}>
             <Icon name="settings" /> {tr("Горячие клавиши")}
           </button>

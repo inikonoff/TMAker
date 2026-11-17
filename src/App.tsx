@@ -10,7 +10,9 @@ import { ProjectPanel } from "./components/panels/ProjectPanel";
 import { ScreensPanel } from "./components/panels/ScreensPanel";
 import { RunView } from "./components/run/RunView";
 import { Toolbar } from "./components/Toolbar";
+import { Tour, startTour } from "./components/onboarding/Tour";
 import { useEditor } from "./store/editor";
+import { getPrefs } from "./store/persist";
 import { tr } from "./lib/i18n";
 
 type MobileTab = "screens" | "props" | null;
@@ -31,7 +33,13 @@ export function App() {
   }, [editorTheme]);
 
   useEffect(() => {
-    if (loaded) requestAnimationFrame(() => fitAll(document.querySelector(".canvas")));
+    if (!loaded) return;
+    requestAnimationFrame(() => fitAll(document.querySelector(".canvas")));
+    // Новым пользователям — обучение. В автотестах (navigator.webdriver) не мешаем сценариям.
+    if (!getPrefs().onboarded && !navigator.webdriver) {
+      const t = setTimeout(startTour, 500);
+      return () => clearTimeout(t);
+    }
   }, [loaded]);
 
   const toggle = (t: MobileTab) => setTab((cur) => (cur === t ? null : t));
@@ -49,7 +57,7 @@ export function App() {
         <DraftBar />
       </main>
       {mode === "edit" && (
-        <aside className={`panel right${tab === "props" ? " open" : ""}`} aria-label={tr("Свойства")}>
+        <aside className={`panel right${tab === "props" ? " open" : ""}`} aria-label={tr("Свойства")} data-tour="inspector">
           {hasSelection ? <Inspector /> : <ProjectPanel />}
         </aside>
       )}
@@ -75,6 +83,7 @@ export function App() {
           </motion.div>
         )}
       </AnimatePresence>
+      <Tour />
     </div>
   );
 }

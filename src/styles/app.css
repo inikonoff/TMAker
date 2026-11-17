@@ -1096,3 +1096,58 @@ table.fields td {
   caret-color: var(--accent);
   z-index: 5;
 }
+
+/* ---------- Обучение ---------- */
+.tour {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+}
+
+.tour-block {
+  position: absolute;
+  inset: 0;
+}
+
+.tour-spot {
+  position: absolute;
+  pointer-events: none;
+  box-shadow:
+    0 0 0 2px var(--accent),
+    0 0 0 9999px rgba(15, 18, 30, 0.5);
+}
+
+.tour-tip {
+  position: absolute;
+  width: min(340px, calc(100vw - 24px));
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+  padding: 14px 16px 12px;
+}
+
+.tour-tip h3 {
+  margin: 2px 0 6px;
+  font-size: 16px;
+}
+
+.tour-tip p {
+  margin: 0 0 12px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.tour-count {
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tour-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}

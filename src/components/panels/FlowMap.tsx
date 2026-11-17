@@ -25,7 +25,7 @@ export function FlowMap() {
   const current = mode === "run" ? runCurrent : active;
 
   return (
-    <div className="section">
+    <div className="section" data-tour="flowmap">
       <h3>{tr("Карта связей")}</h3>
       {f.edges.length === 0 && <p className="hint" style={{ margin: "0 0 8px" }}>{tr("Назначьте кнопке «Перейти на экран» — здесь появятся стрелки.")}</p>}
       <div style={{ overflow: "auto", maxHeight: 280 }}>

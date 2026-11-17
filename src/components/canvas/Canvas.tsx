@@ -227,6 +227,7 @@ export function Canvas() {
   return (
     <div
       ref={ref}
+      data-tour="canvas"
       className={`canvas${panning ? " panning" : space ? " space" : ""}${dragging ? " dragging" : ""}`}
       style={{ backgroundSize: `${dot}px ${dot}px`, backgroundPosition: `${viewport.x}px ${viewport.y}px` }}
       onPointerDownCapture={onPointerDownCapture}
