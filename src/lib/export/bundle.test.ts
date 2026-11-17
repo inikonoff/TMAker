@@ -53,6 +53,13 @@ describe("export bundle", () => {
     }
     expect(files["server/package.json"]).toContain('"pg"');
     expect(files[".env.example"]).toMatch(/BOT_TOKEN=\n/);
+    // Фронтенд можно выложить отдельно от API (GitHub Pages + API бота): адрес API, относительные пути, туннели.
+    expect(files["app/src/api.ts"]).toContain("VITE_API_URL");
+    expect(files["app/vite.config.ts"]).toContain('base: "./"');
+    expect(files["app/vite.config.ts"]).toContain("API_PROXY");
+    expect(files["app/vite.config.ts"]).toContain(".trycloudflare.com");
+    expect(files["app/.env.example"]).toContain("VITE_API_URL=");
+    expect(files["server/src/index.ts"]).toContain("cors(");
     // картинка без байтов не попадает в проект висячей ссылкой
     expect(JSON.parse(files["project.json"] as string).elements[1].content.image).toBeUndefined();
   });

@@ -33,7 +33,8 @@ function withBindingHint(el: Element): Element {
     return { ...el, content: { ...el.content, items: [f, f, f] } };
   }
   if (!b || (b.mode !== "value" && b.mode !== "record") || el.kind === "image") return el;
-  const hint = b.mode === "value" && !b.field ? `{${b.table}.count}` : `{${b.table}.${b.field ?? "…"}}`;
+  // Число записей — короткая подсказка: она часто стоит в узком бейдже.
+  const hint = b.mode === "value" && !b.field ? "{count}" : `{${b.table}.${b.field ?? "…"}}`;
   return { ...el, content: { ...el.content, text: hint } };
 }
 

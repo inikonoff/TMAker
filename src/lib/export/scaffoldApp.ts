@@ -9,7 +9,7 @@ const PKG = JSON.stringify(
     type: "module",
     scripts: { dev: "vite", build: "tsc -p tsconfig.json --noEmit && vite build", preview: "vite preview", typecheck: "tsc -p tsconfig.json --noEmit" },
     dependencies: { react: "^19.0.0", "react-dom": "^19.0.0" },
-    devDependencies: { "@types/react": "^19.0.0", "@types/react-dom": "^19.0.0", "@vitejs/plugin-react": "^6.0.0", typescript: "~5.9.0", vite: "^8.0.0" },
+    devDependencies: { "@types/node": "^22.0.0", "@types/react": "^19.0.0", "@types/react-dom": "^19.0.0", "@vitejs/plugin-react": "^6.0.0", typescript: "~5.9.0", vite: "^8.0.0" },
   },
   null,
   2,
@@ -27,7 +27,7 @@ const TSCONFIG = JSON.stringify(
       skipLibCheck: true,
       resolveJsonModule: true,
       isolatedModules: true,
-      types: ["vite/client"],
+      types: ["vite/client", "node"],
     },
     include: ["src", "vite.config.ts"],
   },
@@ -40,9 +40,18 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
+  // Относительные пути: сборка работает и из подпапки (GitHub Pages: https://<you>.github.io/<repo>/).
+  base: "./",
   // Картинки проекта лежат в ../assets/images и отдаются как /images/…
   publicDir: "../assets",
-  server: { fs: { allow: [".."] }, proxy: { "/api": "http://localhost:3000" } },
+  server: {
+    fs: { allow: [".."] },
+    // В разработке /api уходит на локальный сервер. API_PROXY — его адрес (по умолчанию заготовка server/ на 3000;
+    // для своего бота, например Daily Ten на 10000: API_PROXY=http://localhost:10000 npm run dev).
+    proxy: { "/api": process.env.API_PROXY ?? "http://localhost:3000" },
+    // Проверка в Telegram через HTTPS-туннель: разрешаем адреса cloudflared и ngrok.
+    allowedHosts: [".trycloudflare.com", ".ngrok-free.app", ".ngrok.app"],
+  },
 });
 `;
 
@@ -99,8 +108,13 @@ declare global {
 const API = `// Запросы к серверу. Каждый запрос несёт initData — сервер проверяет подпись.
 const tg = () => window.Telegram?.WebApp;
 
+// Адрес API. Пусто — тот же сервер, что отдаёт страницу (заготовка server/).
+// Если фронтенд на GitHub Pages, а API отдельно (например, у бота на Render) — задайте VITE_API_URL в app/.env.
+let API: string = import.meta.env.VITE_API_URL ?? "";
+while (API.endsWith("/")) API = API.slice(0, -1);
+
 async function call<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const res = await fetch(\`/api/\${path}\`, {
+  const res = await fetch(\`\${API}/api/\${path}\`, {
     method,
     headers: { "Content-Type": "application/json", "X-Telegram-Init-Data": tg()?.initData ?? "" },
     body: body === undefined ? undefined : JSON.stringify(body),
@@ -167,7 +181,7 @@ const sizeOf = (d: unknown) => (typeof d === "string" ? SIZES[d] ?? SIZES.telegr
 const SHADOWS = ["none", "0 1px 3px rgba(0,0,0,.1)", "0 4px 12px rgba(0,0,0,.12)", "0 12px 32px rgba(0,0,0,.18)"];
 const tg = window.Telegram?.WebApp;
 const inTelegram = !!tg?.initData;
-const img = (src?: string) => (src?.startsWith("assets/") ? "/" + src.slice("assets/".length) : src);
+const img = (src?: string) => (src?.startsWith("assets/") ? "./" + src.slice("assets/".length) : src);
 
 function useTokens() {
   const [n, setN] = useState(0);
@@ -403,6 +417,7 @@ export function tokensFor(tg: TgWebApp | undefined, mode: "light" | "dark"): Tok
 export function appFiles(p: Project): Record<string, string> {
   return {
     "app/package.json": PKG,
+    "app/.env.example": "# Адрес API без / на конце. Пусто — API на том же сервере, что и страница.\n# Пример для бота на Render: VITE_API_URL=https://my-bot.onrender.com\nVITE_API_URL=\n",
     "app/tsconfig.json": TSCONFIG,
     "app/vite.config.ts": VITE,
     "app/index.html": HTML(p.title),

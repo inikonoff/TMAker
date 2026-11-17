@@ -263,7 +263,7 @@ function dailyTen(): Project {
       {
         key: "home",
         name: "Сегодня",
-        note: "Главный экран. MainButton «Начать десятку» закрывает мини-приложение и отправляет боту команду /ten (Telegram.WebApp.sendData или ссылка t.me/<бот>?start=ten).",
+        note: "Главный экран. MainButton «Начать десятку» вызывает POST /api/ten (бот начинает новую десятку и присылает первую реплику в чат), затем Telegram.WebApp.close().",
         elements: [
           { kind: "headerBar", text: "Daily Ten" },
           { kind: "text", text: "Hi! Ready for today's ten?", h: 34, style: { fontSize: 22, fontWeight: 700 } },
@@ -359,7 +359,7 @@ function dailyTen(): Project {
   const theme = { ...p.theme, accent: "#e8743b" };
   const card = p.elements.find((e) => e.kind === "card")!;
   const elements = p.elements.map((e) =>
-    e.kind === "badge" ? { ...e, x: card.x + 16, y: card.y + card.h - 28 - 16, w: 64, z: card.z + 1 } : e,
+    e.kind === "badge" ? { ...e, x: card.x + 16, y: card.y + card.h - 28 - 16, w: 84, z: card.z + 1 } : e,
   );
   return { ...p, theme, elements };
 }

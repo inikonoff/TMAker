@@ -224,6 +224,7 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { and, desc, eq } from "drizzle-orm";
 import { Bot, InlineKeyboard } from "grammy";
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { db, migrate } from "./db.js";
@@ -245,6 +246,11 @@ type Entry = { table: any; fields: readonly FieldMeta[] }; // eslint-disable-lin
 const tables = registry as unknown as Record<string, Entry>;
 
 const app = new Hono<{ Variables: { user: TgUser } }>();
+
+// Если фронтенд живёт на другом адресе (GitHub Pages), разрешаем запросы только с него.
+if (WEBAPP_URL) {
+  app.use("/api/*", cors({ origin: new URL(WEBAPP_URL).origin, allowHeaders: ["Content-Type", "X-Telegram-Init-Data"], allowMethods: ["GET", "POST", "DELETE"] }));
+}
 
 /** Строка БД → объект с именами полей из project.json. */
 function toApi(entry: Entry, row: Record<string, unknown>) {
