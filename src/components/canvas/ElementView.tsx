@@ -8,6 +8,7 @@ import { dragOX, dragOY, useDrag } from "../../store/drag";
 import { useEditor } from "../../store/editor";
 import { ArrowSvg, ElementBody } from "../ElementBody";
 import { cancelGesture, startElementDrag } from "./gestures";
+import { InlineText, canEditInline } from "./InlineText";
 import { keys } from "./keys";
 
 type Props = { el: Element; tokens: Tokens; dragging: boolean };
@@ -43,7 +44,12 @@ export const ElementView = memo(function ElementView({ el, tokens, dragging }: P
   const dx = useTransform(dragOX, (v) => base.current.x + v);
   const dy = useTransform(dragOY, (v) => base.current.y + v);
   const lineLike = el.kind === "line" || el.kind === "arrow";
-  const shown = useMemo(() => withBindingHint(el), [el]);
+  const editing = useDrag((s) => s.editingId === el.id);
+  const shown = useMemo(() => {
+    const h = withBindingHint(el);
+    // Во время правки исходный текст прячем — его заменяет поле ввода.
+    return editing ? { ...h, content: { ...h.content, text: "", placeholder: "" } } : h;
+  }, [el, editing]);
   return (
     <motion.div
       className={`el${el.hidden ? " hidden-el" : ""}`}
@@ -56,9 +62,15 @@ export const ElementView = memo(function ElementView({ el, tokens, dragging }: P
         zIndex: el.z + (dragging ? 10000 : 0),
         pointerEvents: lineLike ? "none" : undefined,
       }}
-      onPointerDown={(e) => onDown(e, el)}
+      onPointerDown={(e) => !editing && onDown(e, el)}
+      onDoubleClick={(e) => {
+        if (!canEditInline(el)) return;
+        e.stopPropagation();
+        useDrag.setState({ editingId: el.id });
+      }}
     >
       {lineLike ? <ArrowSvg el={el} tokens={tokens} hit /> : <ElementBody el={shown} tokens={tokens} />}
+      {editing && <InlineText el={el} tokens={tokens} />}
     </motion.div>
   );
 });

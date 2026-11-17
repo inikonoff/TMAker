@@ -392,4 +392,8 @@ export const en: Record<string, string> = {
   "Каталог, карточка товара, корзина и MainButton": "Catalog, product card, cart and MainButton",
   "Запись на приём": "Appointments",
   "Выбор услуги, форма записи, подтверждение": "Pick a service, booking form, confirmation",
+  "Нажмите, чтобы добавить, или перетащите на экран.": "Click to add, or drag onto a screen.",
+  "Текст элемента": "Element text",
+  "Двойной клик": "Double-click",
+  "Править текст на холсте": "Edit text on the canvas",
 };

@@ -1,4 +1,7 @@
-import type { ReactElement } from "react";
+import type { PointerEvent as RPointerEvent, ReactElement } from "react";
+import { useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { clientToWorld, screenAt } from "../canvas/gestures";
 import { KIND_GROUPS, KIND_SPEC, makeElement } from "../../lib/defaults";
 import { screenSize } from "../../lib/devices";
 import type { Kind } from "../../lib/model";
@@ -86,14 +89,20 @@ function KindGlyph({ kind }: { kind: Kind }) {
   );
 }
 
-/** Добавить элемент на активный экран: в видимую часть, со сдвигом, чтобы не ложились стопкой. */
-export function addKind(kind: Kind) {
+/** Добавить элемент. Без точки — под последним элементом активного экрана; с точкой — центром в неё. */
+export function addKind(kind: Kind, at?: { screenId: string; x: number; y: number }) {
   const st = useEditor.getState();
   const p = st.project;
-  const screen = p.screens.find((s) => s.id === st.activeScreen) ?? p.screens[0];
+  const screen = p.screens.find((s) => s.id === (at?.screenId ?? st.activeScreen)) ?? p.screens[0];
   if (!screen) return;
   const size = screenSize(p, screen);
   const pos = placeNew(kind, size, KIND_SPEC[kind], elementsOf(p, screen.id));
+  // Шапка, навигация и MainButton всегда на своих местах; остальное — куда бросили.
+  if (at && !["headerBar", "nav", "mainButton"].includes(kind)) {
+    const h = KIND_SPEC[kind].h;
+    pos.x = Math.max(0, Math.min(size.w - pos.w, Math.round((at.x - pos.w / 2) / 4) * 4));
+    pos.y = Math.max(0, Math.min(size.h - h, Math.round((at.y - h / 2) / 4) * 4));
+  }
   const el = makeElement(kind, screen.id, pos, maxZ(p, screen.id) + 1, p.theme);
   el.w = pos.w;
   if (el.arrow) {
@@ -101,19 +110,77 @@ export function addKind(kind: Kind) {
     el.arrow.to = { x: el.x + pos.w, y: el.y + 12 };
   }
   st.commit((proj) => addElements(proj, [el]));
+  st.setActiveScreen(screen.id);
   st.select([el.id]);
 }
 
+type Ghost = { kind: Kind; x: number; y: number; over: boolean };
+
 export function Palette() {
+  const [ghost, setGhost] = useState<Ghost | null>(null);
+  const dragged = useRef(false);
+
+  /** Перетаскивание из палитры: призрак следует за курсором, отпускание над экраном ставит элемент в точку. */
+  const onPointerDown = (e: RPointerEvent, kind: Kind) => {
+    if (e.button !== 0) return;
+    const start = { x: e.clientX, y: e.clientY };
+    dragged.current = false;
+    const target = (ev: PointerEvent) => {
+      const canvas = document.querySelector(".canvas");
+      const hit = document.elementFromPoint(ev.clientX, ev.clientY);
+      if (!canvas || !hit || !canvas.contains(hit)) return null;
+      const w = clientToWorld(ev.clientX, ev.clientY);
+      const p = useEditor.getState().project;
+      const id = screenAt(p, w);
+      const s = id && p.screens.find((x) => x.id === id);
+      return s ? { screenId: s.id, x: w.x - s.x, y: w.y - s.y } : null;
+    };
+    const move = (ev: PointerEvent) => {
+      if (!dragged.current && Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < 6) return;
+      dragged.current = true;
+      setGhost({ kind, x: ev.clientX, y: ev.clientY, over: !!target(ev) });
+    };
+    const up = (ev: PointerEvent) => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", cancel);
+      setGhost(null);
+      if (!dragged.current) return;
+      const at = target(ev);
+      if (at) addKind(kind, at);
+    };
+    const cancel = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", cancel);
+      setGhost(null);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", cancel);
+  };
+
   return (
-    <div className="section">
+    <div className="section" data-tour="palette">
       <h3>{tr("Элементы")}</h3>
+      <p className="hint" style={{ margin: "-4px 0 4px" }}>
+        {tr("Нажмите, чтобы добавить, или перетащите на экран.")}
+      </p>
       {KIND_GROUPS.map((g) => (
         <div key={g.id}>
           <div className="palette-group">{tr(g.label)}</div>
           <div className="palette">
             {KINDS.filter((k) => KIND_SPEC[k].group === g.id).map((k) => (
-              <button key={k} onClick={() => addKind(k)} title={tr("Добавить: {k}", { k: tr(KIND_SPEC[k].label) })}>
+              <button
+                key={k}
+                onPointerDown={(e) => onPointerDown(e, k)}
+                onClick={() => {
+                  // Клик после перетаскивания не добавляет второй элемент.
+                  if (!dragged.current) addKind(k);
+                  dragged.current = false;
+                }}
+                title={tr("Добавить: {k}", { k: tr(KIND_SPEC[k].label) })}
+              >
                 <KindGlyph kind={k} />
                 {tr(KIND_SPEC[k].label)}
               </button>
@@ -121,6 +188,14 @@ export function Palette() {
           </div>
         </div>
       ))}
+      {ghost &&
+        createPortal(
+          <div className={`palette-ghost${ghost.over ? " over" : ""}`} style={{ left: ghost.x, top: ghost.y }}>
+            <KindGlyph kind={ghost.kind} />
+            {tr(KIND_SPEC[ghost.kind].label)}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

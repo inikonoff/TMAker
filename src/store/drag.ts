@@ -17,6 +17,8 @@ type DragState = {
   marquee: Rect | null;
   /** Размер во время resize — для подписи. */
   sizeTag: { w: number; h: number } | null;
+  /** Элемент, текст которого правится прямо на холсте. */
+  editingId: string | null;
 };
 
 export const useDrag = create<DragState>()(() => ({
@@ -25,6 +27,7 @@ export const useDrag = create<DragState>()(() => ({
   guides: [],
   marquee: null,
   sizeTag: null,
+  editingId: null,
 }));
 
 export const EMPTY_IDS = new Set<string>();
