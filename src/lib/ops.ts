@@ -102,12 +102,15 @@ export function deleteScreen(p: Project, id: string): Project {
   const elements = p.elements
     .filter((e) => e.screenId !== id)
     .map((e) => {
+      let next = e;
       if (e.action && "to" in e.action && e.action.to === id) {
-        const next = { ...e };
+        next = { ...e };
         delete next.action;
-        return next;
       }
-      return e;
+      if (e.content?.links?.includes(id)) {
+        next = { ...next, content: { ...e.content, links: e.content.links.map((l) => (l === id ? "" : l)) } };
+      }
+      return next;
     });
   return { ...p, screens, elements };
 }

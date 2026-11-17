@@ -153,6 +153,14 @@ export function RunView() {
     );
   };
 
+  /** Вкладки и нижняя навигация заменяют текущий экран, а не копятся в истории «Назад». */
+  const switchTab = (to: string) => {
+    if (!byId.has(to) || to === current.id) return;
+    run({ from: current.id, to, kind: "fade", dir: "forward", fromRecords: current.records, toRecords: current.records }, () =>
+      setStack((s) => [...s.slice(0, -1), { id: to, via: s[s.length - 1]?.via ?? "none", records: current.records }]),
+    );
+  };
+
   const back = () => {
     if (stack.length < 2) return;
     const top = stack[stack.length - 1]!;
@@ -180,7 +188,7 @@ export function RunView() {
     go(a.to, a.transition);
   };
 
-  const handlers: RunHandlers = { onAction, rowsFor: sandbox.rowsFor, renderForm: sandbox.renderForm, valueFor: sandbox.valueFor };
+  const handlers: RunHandlers = { onAction, rowsFor: sandbox.rowsFor, renderForm: sandbox.renderForm, valueFor: sandbox.valueFor, onNavigate: switchTab };
 
   // ---------- Свайп «за пальцем» ----------
   const swipe = useRef<{ x: number; y: number; t: number; dir: keyof Swipe | null; target: string | null; back: boolean; w: number; h: number } | null>(null);

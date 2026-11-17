@@ -2,11 +2,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { tr } from "../../lib/i18n";
 import type { TemplateId } from "../../lib/templates";
-import { makeTemplate, TEMPLATES } from "../../lib/templates";
+import { makeTemplate, templateSample, TEMPLATES } from "../../lib/templates";
 import { useEditor } from "../../store/editor";
 import { flushSave, openAsNewProject, switchProject } from "../../store/persist";
 import type { ProjectMeta, Version } from "../../store/projects";
-import { deleteProject, deleteVersion, listProjects, listVersions, loadProject, saveVersion, versionProject } from "../../store/projects";
+import { sandboxKey, deleteProject, deleteVersion, listProjects, listVersions, loadProject, saveVersion, versionProject } from "../../store/projects";
 import { fitAll } from "../canvas/Canvas";
 import { Icon } from "../Icon";
 
@@ -40,7 +40,15 @@ export function ProjectsDialog({ onClose, initialTab = "projects" }: { onClose: 
   };
 
   const create = async (t: TemplateId) => {
-    await openAsNewProject(makeTemplate(t));
+    const id = await openAsNewProject(makeTemplate(t));
+    const sample = templateSample(t);
+    if (Object.keys(sample).length) {
+      try {
+        localStorage.setItem(sandboxKey(id), JSON.stringify(sample));
+      } catch {
+        /* без localStorage пример просто будет пустым */
+      }
+    }
     refit();
     onClose();
   };

@@ -18,6 +18,9 @@ export function flowEdges(p: Project): FlowEdge[] {
     if (a && "to" in a) {
       push({ from: el.screenId, to: a.to, label: el.content?.text || el.name || el.kind, kind: "tap", transition: a.transition });
     }
+    el.content?.links?.forEach((to, i) => {
+      if (to) push({ from: el.screenId, to, label: el.content?.items?.[i] ?? `#${i + 1}`, kind: "tap", transition: "fade" });
+    });
   }
   const dirs = { left: "slideLeft", right: "slideRight", up: "slideUp", down: "slideDown" } as const;
   for (const s of p.screens) {

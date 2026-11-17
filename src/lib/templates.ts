@@ -4,11 +4,13 @@ import { screenSize } from "./devices";
 import type { Action, Binding, Content, Element, Kind, Project, Style, Table } from "./model";
 import { addScreen, syncArrows } from "./ops";
 import { placeNew } from "./placement";
+import type { SandboxData } from "./sandbox";
 
-export type TemplateId = "blank" | "tasks" | "shop" | "booking";
+export type TemplateId = "blank" | "dailyten" | "tasks" | "shop" | "booking";
 
 export const TEMPLATES: { id: TemplateId; title: string; description: string }[] = [
   { id: "blank", title: "Пустой проект", description: "Один экран Telegram" },
+  { id: "dailyten", title: "Пример: Daily Ten", description: "Дневник к боту-репетитору: сессии, разбор, ошибки. Готовый результат инструкции" },
   { id: "tasks", title: "Список задач", description: "Список, карточка задачи, форма добавления, таблица tasks" },
   { id: "shop", title: "Магазин", description: "Каталог, карточка товара, корзина и MainButton" },
   { id: "booking", title: "Запись на приём", description: "Выбор услуги, форма записи, подтверждение" },
@@ -24,6 +26,9 @@ type Spec = {
   content?: Content;
   action?: Action | { goto: string; transition?: "slideLeft" | "slideUp" | "fade" };
   bind?: Binding;
+  /** Для nav/tabs: ключи экранов для пунктов ("" — без перехода). */
+  links?: string[];
+  value?: number;
 };
 
 type ScreenSpec = { key: string; name: string; note?: string; elements: Spec[] };
@@ -51,7 +56,8 @@ function build(title: string, brief: string, screens: ScreenSpec[], tables: Tabl
       const el = makeElement(spec.kind, screen.id, pos, placed.length, p.theme);
       el.w = pos.w;
       el.h = h;
-      if (spec.kind === "nav" || spec.kind === "mainButton") el.y = size.h - h - (spec.kind === "mainButton" ? 16 : 0);
+      if (spec.kind === "nav") el.y = size.h - h;
+      if (spec.kind === "mainButton") el.y = pos.y; // placeNew уже учёл навигацию
       // «Назад» — в шапке слева, вне потока.
       if (spec.kind === "backButton") {
         el.x = 4;
@@ -69,6 +75,8 @@ function build(title: string, brief: string, screens: ScreenSpec[], tables: Tabl
       if (spec.placeholder) c.placeholder = spec.placeholder;
       el.content = c;
       if (spec.bind) el.bind = spec.bind;
+      if (spec.value !== undefined) c.value = spec.value;
+      if (spec.links) c.links = spec.links.map((k) => (k ? (ids.get(k) ?? "") : ""));
       if (spec.action) {
         el.action =
           "goto" in spec.action ? { to: ids.get(spec.action.goto)!, transition: spec.action.transition ?? "slideLeft" } : spec.action;
@@ -86,6 +94,8 @@ export function makeTemplate(id: TemplateId): Project {
   switch (id) {
     case "blank":
       return emptyProject();
+    case "dailyten":
+      return dailyTen();
     case "tasks":
       return build(
         "Список задач",
@@ -234,4 +244,144 @@ export function makeTemplate(id: TemplateId): Project {
         { name: "", commands: [{ command: "start", description: "Записаться" }, { command: "my", description: "Мои записи" }] },
       );
   }
+}
+
+/**
+ * Пример из инструкции: мини-приложение к боту Daily Ten (github.com/inikonoff/Daily-Ten) —
+ * ежедневная десятка реплик с Mrs. Smith и Session Summary. Приложение — дневник прогресса.
+ */
+function dailyTen(): Project {
+  const NAV = ["Сегодня", "Сессии", "Ошибки"];
+  const muted: Partial<Style> = { textColor: "$textMuted", fontSize: 13 };
+  const h2: Partial<Style> = { fontSize: 15, fontWeight: 600 };
+  const p = build(
+    "Daily Ten",
+    "Мини-приложение к Telegram-боту Daily Ten: каждый день 10 реплик с учительницей Mrs. Smith, потом Session Summary. " +
+      "Приложение — дневник прогресса: сколько сессий пройдено, разбор каждой сессии, ошибки, которые стоит повторить. " +
+      "Сам разговор остаётся в чате бота.",
+    [
+      {
+        key: "home",
+        name: "Сегодня",
+        note: "Главный экран. MainButton «Начать десятку» закрывает мини-приложение и отправляет боту команду /ten (Telegram.WebApp.sendData или ссылка t.me/<бот>?start=ten).",
+        elements: [
+          { kind: "headerBar", text: "Daily Ten" },
+          { kind: "text", text: "Hi! Ready for today's ten?", h: 34, style: { fontSize: 22, fontWeight: 700 } },
+          { kind: "text", text: "Десять реплик с Mrs. Smith — и разбор вашего английского.", h: 44, style: { textColor: "$textMuted" } },
+          { kind: "card", text: "Сессий пройдено", h: 96 },
+          { kind: "badge", h: 28, bind: { table: "sessions", mode: "value" }, style: { fontSize: 15 } },
+          { kind: "nav", items: NAV, value: 0, links: ["", "sessions", "mistakes"] },
+          { kind: "mainButton", text: "Начать десятку" },
+        ],
+      },
+      {
+        key: "sessions",
+        name: "Сессии",
+        note: "Все прошлые сессии, новые сверху. Нажатие открывает Session Summary этой сессии.",
+        elements: [
+          { kind: "headerBar", text: "Мои сессии" },
+          { kind: "list", h: 420, bind: { table: "sessions", mode: "list", field: "date" }, action: { goto: "summary" } },
+          { kind: "nav", items: NAV, value: 1, links: ["home", "", "mistakes"] },
+        ],
+      },
+      {
+        key: "summary",
+        name: "Разбор сессии",
+        note: "Session Summary выбранной сессии: лучший момент, уровень, на чём сосредоточиться.",
+        elements: [
+          { kind: "headerBar", text: "Session Summary" },
+          { kind: "backButton", action: { back: true } },
+          { kind: "text", h: 20, style: muted, bind: { table: "sessions", mode: "record", field: "date" } },
+          { kind: "text", text: "⭐ Best moment", h: 22, style: h2 },
+          { kind: "text", h: 60, bind: { table: "sessions", mode: "record", field: "best_moment" } },
+          { kind: "text", text: "📈 Level", h: 22, style: h2 },
+          { kind: "text", h: 24, bind: { table: "sessions", mode: "record", field: "level_cefr" } },
+          { kind: "text", text: "🎯 Next time", h: 22, style: h2 },
+          { kind: "text", h: 60, bind: { table: "sessions", mode: "record", field: "focus" } },
+        ],
+      },
+      {
+        key: "mistakes",
+        name: "Ошибки",
+        note: "Ошибки из всех Session Summary: как было и как правильно. Нажатие открывает объяснение.",
+        elements: [
+          { kind: "headerBar", text: "Worth a second look" },
+          { kind: "list", h: 420, bind: { table: "mistakes", mode: "list", field: "was" }, action: { goto: "mistake" } },
+          { kind: "nav", items: NAV, value: 2, links: ["home", "sessions", ""] },
+        ],
+      },
+      {
+        key: "mistake",
+        name: "Ошибка",
+        elements: [
+          { kind: "headerBar", text: "Ошибка" },
+          { kind: "backButton", action: { back: true } },
+          { kind: "text", text: "Было", h: 20, style: muted },
+          { kind: "text", h: 30, style: { fontSize: 17, textColor: "$danger" }, bind: { table: "mistakes", mode: "record", field: "was" } },
+          { kind: "text", text: "Правильно", h: 20, style: muted },
+          { kind: "text", h: 30, style: { fontSize: 17, fontWeight: 600 }, bind: { table: "mistakes", mode: "record", field: "correct" } },
+          { kind: "text", text: "Почему", h: 20, style: muted },
+          { kind: "text", h: 80, bind: { table: "mistakes", mode: "record", field: "why" } },
+        ],
+      },
+    ],
+    [
+      {
+        name: "sessions",
+        fields: [
+          { name: "date", type: "date", required: true },
+          { name: "best_moment", type: "text", required: false },
+          { name: "level_cefr", type: "text", required: false },
+          { name: "focus", type: "text", required: false },
+        ],
+      },
+      {
+        name: "mistakes",
+        fields: [
+          { name: "was", type: "text", required: true },
+          { name: "correct", type: "text", required: true },
+          { name: "why", type: "text", required: false },
+          { name: "category", type: "text", required: false },
+        ],
+      },
+    ],
+    {
+      name: "",
+      commands: [
+        { command: "ten", description: "Start today's ten" },
+        { command: "summary", description: "My last Session Summary" },
+        { command: "finish", description: "Wrap up the session" },
+        { command: "start", description: "Where are we? (status)" },
+      ],
+    },
+  );
+  // Тёплый акцент и счётчик сессий внутри карточки.
+  const theme = { ...p.theme, accent: "#e8743b" };
+  const card = p.elements.find((e) => e.kind === "card")!;
+  const elements = p.elements.map((e) =>
+    e.kind === "badge" ? { ...e, x: card.x + 16, y: card.y + card.h - 28 - 16, w: 64, z: card.z + 1 } : e,
+  );
+  return { ...p, theme, elements };
+}
+
+/** Примерные записи для песочницы режима «Запустить» (в настоящем приложении данные придут из базы бота). */
+export function templateSample(id: TemplateId): SandboxData {
+  const rows = (table: string, list: Record<string, string | null>[]) =>
+    list.map((r, i) => ({ ...r, _id: `${table}_${i + 1}`, _at: i + 1 }));
+  if (id === "dailyten") {
+    return {
+      sessions: rows("sessions", [
+        { date: "2026-11-15", best_moment: "You told the story about your trip to Minsk very naturally.", level_cefr: "B1", focus: "Past Simple vs Present Perfect" },
+        { date: "2026-11-16", best_moment: "Great use of “I'd rather…” when talking about weekends.", level_cefr: "B1+", focus: "Articles with countable nouns" },
+      ]),
+      mistakes: rows("mistakes", [
+        { was: "I have been there yesterday", correct: "I was there yesterday", why: "With a finished time (yesterday) use Past Simple.", category: "grammar" },
+        { was: "She is good in cooking", correct: "She is good at cooking", why: "“Good at” + activity.", category: "prepositions" },
+      ]),
+    };
+  }
+  if (id === "tasks") {
+    return { tasks: rows("tasks", [{ title: "Купить хлеб", note: "Бородинский", done: null }]) };
+  }
+  return {};
 }

@@ -72,7 +72,7 @@ export type Action = { to: string; transition: string } | { back: true } | { ope
 export type El = {
   id: string; screenId: string; kind: string; x: number; y: number; w: number; h: number; z: number;
   hidden?: boolean; style: Style; action?: Action;
-  content?: { text?: string; image?: string; imageFit?: string; items?: string[]; checked?: boolean; value?: number; placeholder?: string; shape?: string };
+  content?: { text?: string; image?: string; imageFit?: string; items?: string[]; links?: string[]; checked?: boolean; value?: number; placeholder?: string; shape?: string };
   bind?: { table: string; mode: "list" | "form" | "value" | "record"; field?: string };
   arrow?: { from: { x: number; y: number }; to: { x: number; y: number }; head: string };
 };
@@ -240,6 +240,11 @@ export function App() {
     setAnim(via);
     setStack((s) => [...s, { id: to, via, records }]);
   };
+  // Вкладки и нижняя навигация заменяют текущий экран, а не копятся в истории «Назад».
+  const switchTab = (to: string) => {
+    setAnim("fade");
+    setStack((s) => [...s.slice(0, -1), { id: to, via: s[s.length - 1]!.via, records: cur.records }]);
+  };
   // «Назад» — зеркальный переход.
   const MIRROR: Record<string, string> = { slideLeft: "slideRight", slideRight: "slideLeft", none: "none" };
   const back = () => {
@@ -310,8 +315,14 @@ export function App() {
         <div
           key={i}
           // Строка привязанного списка с действием открывает экран и передаёт запись.
-          onClick={bound && e.action ? (ev) => { ev.stopPropagation(); act(e, bound[i]); } : undefined}
-          style={{ cursor: bound && e.action ? "pointer" : undefined, flex: e.kind === "list" ? "0 0 48px" : 1, display: "flex", alignItems: "center", justifyContent: e.kind === "list" ? "flex-start" : "center", padding: "0 16px", borderBottom: e.kind === "list" ? \`1px solid \${t.border}\` : undefined, color: e.kind !== "list" && i === (c.value ?? 0) ? t.accent : undefined }}>{it}</div>
+          onClick={
+            bound && e.action
+              ? (ev) => { ev.stopPropagation(); act(e, bound[i]); }
+              : c.links?.[i]
+                ? (ev) => { ev.stopPropagation(); switchTab(c.links![i]!); }
+                : undefined
+          }
+          style={{ cursor: (bound && e.action) || c.links?.[i] ? "pointer" : undefined, flex: e.kind === "list" ? "0 0 48px" : 1, display: "flex", alignItems: "center", justifyContent: e.kind === "list" ? "flex-start" : "center", padding: "0 16px", borderBottom: e.kind === "list" ? \`1px solid \${t.border}\` : undefined, color: e.kind !== "list" && i === (c.value ?? 0) ? t.accent : undefined }}>{it}</div>
       ));
     }
     if (e.bind?.mode === "record") {

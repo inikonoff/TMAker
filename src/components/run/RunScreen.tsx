@@ -11,6 +11,8 @@ export type RunHandlers = {
   rowsFor?: (el: Element) => string[] | undefined;
   renderForm?: (el: Element) => React.ReactNode;
   valueFor?: (el: Element, records?: Record<string, string>) => string | undefined;
+  /** Переход по пункту навигации или вкладки. */
+  onNavigate?: (screenId: string) => void;
 };
 
 type Props = {
@@ -42,12 +44,12 @@ export const RunScreen = memo(function RunScreen({ screen, elements, tokens, w, 
           const isUrl = /^(https?:|data:image\/)/.test(value);
           shown = { ...shown, content: { ...shown.content, ...(el.kind === "image" ? (isUrl ? { image: value } : {}) : { text: value }) } };
         }
-        const clickable = !!el.action || el.kind === "backButton" || TOGGLES.has(el.kind) || el.kind === "tabs" || el.kind === "nav";
+        const clickable = !!el.action || !!el.content?.links?.some(Boolean) || el.kind === "backButton" || TOGGLES.has(el.kind) || el.kind === "tabs" || el.kind === "nav";
         const form = handlers.renderForm?.(el);
         return (
           <div
             key={el.id}
-            className={`run-el${clickable ? " clickable" : ""}${highlight && el.action ? " hl" : ""}`}
+            className={`run-el${clickable ? " clickable" : ""}${highlight && (el.action || el.content?.links?.some(Boolean)) ? " hl" : ""}`}
             style={{ position: "absolute", left: el.x, top: el.y, width: el.w, height: el.h, zIndex: el.z, pointerEvents: el.kind === "line" || el.kind === "arrow" ? "none" : undefined }}
             onClick={(e) => {
               if (TOGGLES.has(el.kind)) {
@@ -57,6 +59,8 @@ export const RunScreen = memo(function RunScreen({ screen, elements, tokens, w, 
                 const n = Math.max(1, el.content?.items?.length ?? 1);
                 const i = Math.min(n - 1, Math.floor(((e.clientX - r.left) / r.width) * n));
                 setLocal((s) => ({ ...s, [el.id]: { value: i } }));
+                const to = el.content?.links?.[i];
+                if (to) return handlers.onNavigate?.(to);
               }
               const row = (e.target as HTMLElement).closest<HTMLElement>("[data-row]");
               handlers.onAction(el, row ? Number(row.dataset.row) : undefined);

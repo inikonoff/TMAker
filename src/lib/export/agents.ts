@@ -41,7 +41,7 @@ type Project = {
              swipe?: { left?: string; right?: string; up?: string; down?: string } }[];
   elements: { id: string; screenId: string; kind: string; x: number; y: number; w: number; h: number; z: number;
               style: { fill; stroke: { style; width; color }; radius; shadow; opacity; textColor; fontSize; fontWeight; align };
-              content?: { text?; image?; imageFit?; items?; checked?; value?; placeholder?; shape?; sides? };
+              content?: { text?; image?; imageFit?; items?; links?; checked?; value?; placeholder?; shape?; sides? };  // links — экран для каждого пункта nav/tabs
               action?: { to: string; transition: string } | { back: true } | { open: "link"; url: string };
               bind?: { table: string; mode: "list" | "form" | "value" | "record"; field?: string };
               arrow?: { from: { el?: string; x; y }; to: { el?: string; x; y }; head: "none" | "end" | "both" } }[];

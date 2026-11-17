@@ -27,4 +27,10 @@ describe("placeNew", () => {
     const pos = placeNew("card", size, KIND_SPEC.card, [nav, tall]);
     expect(pos.y + KIND_SPEC.card.h).toBeLessThan(nav.y);
   });
+
+  it("MainButton встаёт над нижней навигацией", () => {
+    const nav = makeElement("nav", "s", placeNew("nav", size, KIND_SPEC.nav, []), 0);
+    const pos = placeNew("mainButton", size, KIND_SPEC.mainButton, [nav]);
+    expect(pos.y + KIND_SPEC.mainButton.h).toBeLessThanOrEqual(nav.y);
+  });
 });

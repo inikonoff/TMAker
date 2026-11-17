@@ -100,3 +100,23 @@ describe("ops", () => {
     expect(reorderScreens(p, [s2])).toBe(p);
   });
 });
+
+describe("переходы пунктов навигации", () => {
+  it("валидатор чистит ссылки, удаление экрана их снимает, карта их видит", async () => {
+    const { parseProject } = await import("./validate");
+    const { flowEdges } = await import("./flow");
+    const { p, s1, s2 } = setup();
+    const nav = makeElement("nav", s1, { x: 0, y: 700 }, 9);
+    nav.content = { ...nav.content, links: ["", s2, "ghost"] };
+    // Убираем у кнопки переход на s2, чтобы стрелка карты была именно от пункта навигации.
+    const q = { ...p, elements: [...p.elements.map((e) => ({ ...e, action: undefined })), nav] };
+    const r = parseProject(JSON.parse(JSON.stringify(q)));
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    const parsed = r.project.elements.find((e) => e.id === nav.id)!;
+    expect(parsed.content!.links).toEqual(["", s2, ""]);
+    expect(flowEdges(r.project).some((e) => e.label === "Поиск" && e.to === s2)).toBe(true);
+    const d = deleteScreen(r.project, s2);
+    expect(d.elements.find((e) => e.id === nav.id)!.content!.links).toEqual(["", "", ""]);
+  });
+});

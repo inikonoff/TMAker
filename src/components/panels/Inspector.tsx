@@ -100,6 +100,43 @@ function ImageSection({ el }: { el: Element }) {
   );
 }
 
+/** Экран для каждого пункта навигации или вкладок. */
+function ItemLinks({ el }: { el: Element }) {
+  const screens = useEditor((s) => s.project.screens);
+  const items = el.content?.items ?? [];
+  const links = el.content?.links ?? [];
+  if (items.length === 0) return null;
+  return (
+    <>
+      <div className="hint" style={{ margin: "4px 0 6px" }}>
+        {tr("Пункт ведёт на экран")}
+      </div>
+      {items.map((it, i) => (
+        <div className="row" key={i}>
+          <label title={it}>{it || `#${i + 1}`}</label>
+          <select
+            className="input"
+            value={links[i] ?? ""}
+            onChange={(e) => {
+              const next = items.map((_, j) => (j === i ? e.target.value : (links[j] ?? "")));
+              setContent({ links: next.some(Boolean) ? next : undefined }, `links-${i}`);
+            }}
+          >
+            <option value="">—</option>
+            {screens
+              .filter((s) => s.id !== el.screenId)
+              .map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+          </select>
+        </div>
+      ))}
+    </>
+  );
+}
+
 export function Inspector() {
   const selection = useEditor((s) => s.selection);
   const project = useEditor((s) => s.project);
@@ -225,6 +262,7 @@ export function Inspector() {
                   <NumField label="#" value={(c.value ?? 0) + 1} min={1} max={(c.items ?? []).length || 1} onChange={(v) => setContent({ value: v - 1 }, "val")} />
                 </Row>
               )}
+              {el.kind !== "list" && !multi && <ItemLinks el={el} />}
             </>
           )}
           {el.kind === "shape" && (

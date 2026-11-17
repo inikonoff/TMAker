@@ -48,6 +48,8 @@ export type Content = {
   sides?: number;
   /** Пункты для tabs / list / nav. */
   items?: string[];
+  /** Для nav и tabs: экран для каждого пункта (id экрана или "" — без перехода). */
+  links?: string[];
   checked?: boolean;
   value?: number;
   placeholder?: string;

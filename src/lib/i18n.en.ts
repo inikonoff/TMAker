@@ -396,6 +396,9 @@ export const en: Record<string, string> = {
   "Текст элемента": "Element text",
   "Двойной клик": "Double-click",
   "Править текст на холсте": "Edit text on the canvas",
+  "Пункт ведёт на экран": "Item opens screen",
+  "Пример: Daily Ten": "Example: Daily Ten",
+  "Дневник к боту-репетитору: сессии, разбор, ошибки. Готовый результат инструкции": "A diary for a tutor bot: sessions, summaries, mistakes. The finished result of the guide",
   // Обучение
   "Добро пожаловать в TMA Builder": "Welcome to TMA Builder",
   "Здесь вы рисуете экраны мини-приложения для Telegram, связываете их переходами, проверяете сценарий и получаете готовый проект для VS Code и нейросети. Пройдём по интерфейсу за минуту.": "Here you draw the screens of a Telegram mini app, link them with transitions, try the flow and get a ready project for VS Code and an AI model. Let's walk through the interface in a minute.",

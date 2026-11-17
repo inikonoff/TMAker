@@ -322,6 +322,11 @@ export function parseProject(input: unknown): ParseResult {
     if (typeof e.name === "string") el.name = e.name.slice(0, 80);
     const c = content(e.content);
     if (c) el.content = c;
+    // Переходы пунктов навигации: несуществующие экраны снимаются.
+    if (c && isObj(e.content) && Array.isArray(e.content.links)) {
+      c.links = e.content.links.slice(0, 50).map((l) => (typeof l === "string" && screenIds.has(l) ? l : ""));
+      if (!c.links.some(Boolean)) delete c.links;
+    }
     const a = action(e.action, screenIds, warn);
     if (a) el.action = a;
     const b = binding(e.bind);

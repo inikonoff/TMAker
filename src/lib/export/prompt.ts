@@ -40,7 +40,11 @@ function describeElement(e: Element, p: Project): string {
   const c = e.content;
   if (c?.text) parts.push(`текст «${c.text.replace(/\n/g, " / ")}»`);
   if (c?.placeholder) parts.push(`подсказка «${c.placeholder}»`);
-  if (c?.items?.length) parts.push(`пункты: ${c.items.map((i) => `«${i}»`).join(", ")}`);
+  if (c?.items?.length) {
+    parts.push(`пункты: ${c.items.map((i) => `«${i}»`).join(", ")}`);
+    const links = (c.links ?? []).map((to, i) => (to ? `«${c.items![i] ?? i + 1}» → экран «${p.screens.find((s) => s.id === to)?.name ?? "?"}»` : "")).filter(Boolean);
+    if (links.length) parts.push(`**переходы пунктов: ${links.join(", ")}**`);
+  }
   if (c?.shape) parts.push(`фигура ${c.shape}${c.shape === "polygon" ? ` (${c.sides} углов)` : ""}`);
   if (c?.image) parts.push(`картинка ${c.image.startsWith("idb:") ? "(файл в images/)" : c.image} [${c.imageFit ?? "cover"}]`);
   if (c?.checked !== undefined && (e.kind === "switch" || e.kind === "checkbox")) parts.push(c.checked ? "включён" : "выключен");
