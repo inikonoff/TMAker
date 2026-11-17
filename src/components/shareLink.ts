@@ -9,7 +9,7 @@ export async function openFromHash() {
   if (!m) return;
   try {
     const json = await decodeDocz(m[1]!);
-    if (openJsonText(json)) history.replaceState(null, "", location.pathname + location.search);
+    if (await openJsonText(json)) history.replaceState(null, "", location.pathname + location.search);
   } catch {
     useEditor.getState().showToast(tr("Ссылка повреждена"));
   }

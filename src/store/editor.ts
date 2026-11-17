@@ -14,6 +14,8 @@ export type Mode = "edit" | "run";
 
 export type EditorState = {
   project: Project;
+  /** id текущего проекта в IndexedDB. */
+  projectId: string;
   selection: string[];
   activeScreen: string;
   viewport: Viewport;
@@ -73,6 +75,7 @@ const initial = emptyProject();
 
 export const useEditor = create<EditorState & Actions>()((set, get) => ({
   project: initial,
+  projectId: "",
   selection: [],
   activeScreen: initial.screens[0]!.id,
   viewport: { x: 80, y: 80, z: 0.75 },

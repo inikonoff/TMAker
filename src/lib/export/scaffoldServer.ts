@@ -282,6 +282,14 @@ function parseValue(f: FieldMeta, v: unknown): unknown {
   return String(v).slice(0, 5000);
 }
 
+app.get("/api/:table/:id", async (c) => {
+  const entry = tables[decodeURIComponent(c.req.param("table"))];
+  if (!entry) return c.json({ error: "Нет такой таблицы" }, 404);
+  const t = entry.table;
+  const [row] = (await db.select().from(t).where(and(eq(t.id, Number(c.req.param("id"))), eq(t.userId, c.get("user").id)))) as Record<string, unknown>[];
+  return row ? c.json(toApi(entry, row)) : c.json({ error: "Запись не найдена" }, 404);
+});
+
 app.post("/api/:table", async (c) => {
   const entry = tables[decodeURIComponent(c.req.param("table"))];
   if (!entry) return c.json({ error: "Нет такой таблицы" }, 404);

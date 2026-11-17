@@ -955,3 +955,100 @@ table.fields td {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ---------- Проекты ---------- */
+.proj-title {
+  max-width: 220px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.proj-title span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.proj-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 55vh;
+  overflow: auto;
+}
+
+.proj-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 10px;
+}
+
+.proj-list li.current {
+  background: var(--accent-soft);
+}
+
+.proj-open {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 6px 8px;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.proj-open:hover {
+  background: var(--panel-2);
+}
+
+.proj-open b {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tag {
+  font-size: 11px;
+  color: var(--accent);
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: var(--panel);
+}
+
+.tpl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.tpl {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  text-align: left;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    transform 0.15s var(--ease);
+}
+
+.tpl:hover {
+  border-color: var(--accent);
+}
+
+.tpl:active {
+  transform: scale(0.98);
+}

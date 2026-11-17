@@ -8,6 +8,7 @@ const MODES: { value: Binding["mode"]; label: string; kinds: string[] }[] = [
   { value: "list", label: "Список записей", kinds: ["list"] },
   { value: "form", label: "Форма добавления", kinds: ["card", "box"] },
   { value: "value", label: "Одно значение", kinds: ["text", "badge", "button", "card", "box", "headerBar"] },
+  { value: "record", label: "Поле выбранной записи", kinds: ["text", "badge", "button", "card", "box", "headerBar", "image"] },
 ];
 
 export function BindSection({ el }: { el: Element }) {
@@ -66,7 +67,13 @@ export function BindSection({ el }: { el: Element }) {
                 </select>
               )}
               <p className="hint" style={{ marginBottom: 0 }}>
-                {el.bind.mode === "form" ? tr("В режиме «Запустить» здесь появится форма с полями таблицы.") : tr("В режиме «Запустить» показываются записи песочницы.")}
+                {el.bind.mode === "form"
+                  ? tr("В режиме «Запустить» здесь появится форма с полями таблицы.")
+                  : el.bind.mode === "record"
+                    ? tr("Показывает поле записи, выбранной на предыдущем экране: назначьте списку этой таблицы действие «Перейти на экран».")
+                    : el.bind.mode === "list" && el.action && "to" in el.action
+                      ? tr("Нажатие на строку откроет экран и передаст ему выбранную запись.")
+                      : tr("В режиме «Запустить» показываются записи песочницы.")}
               </p>
             </>
           )}

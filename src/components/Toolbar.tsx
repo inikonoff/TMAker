@@ -1,5 +1,4 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import { emptyProject } from "../lib/defaults";
 import { LANGS } from "../lib/i18n";
 import { resetHistory, useEditor } from "../store/editor";
 import { pickJson, saveJson } from "./files";
@@ -11,6 +10,7 @@ import { tr } from "../lib/i18n";
 // Окна грузятся по требованию: fflate и html-to-image нужны только при экспорте.
 const AiDialog = lazy(() => import("./ai/AiDialog").then((m) => ({ default: m.AiDialog })));
 const DataDialog = lazy(() => import("./data/DataDialog").then((m) => ({ default: m.DataDialog })));
+const ProjectsDialog = lazy(() => import("./projects/ProjectsDialog").then((m) => ({ default: m.ProjectsDialog })));
 const ExportDialog = lazy(() => import("./export/ExportDialog").then((m) => ({ default: m.ExportDialog })));
 
 function Menu({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
@@ -45,6 +45,7 @@ export function Toolbar({ extra }: { extra?: React.ReactNode }) {
   const [exporting, setExporting] = useState(false);
   const [dataOpen, setDataOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
+  const [projects, setProjects] = useState<null | "projects" | "new" | "versions">(null);
   const close = () => setMenu(null);
 
   return (
@@ -52,9 +53,20 @@ export function Toolbar({ extra }: { extra?: React.ReactNode }) {
       <div className="brand hide-mobile">
         TMA<span>·</span>Builder
       </div>
-      <span className="hint hide-mobile" style={{ maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-        {title}
-      </span>
+      <button
+        className="btn proj-title"
+        data-tour="projects"
+        disabled={mode === "run"}
+        onClick={() => setProjects("projects")}
+        title={tr("Проекты, шаблоны и версии")}
+      >
+        <span>{title}</span> <Icon name="more" size={14} />
+      </button>
+      {projects && (
+        <Suspense fallback={null}>
+          <ProjectsDialog initialTab={projects} onClose={() => setProjects(null)} />
+        </Suspense>
+      )}
       <span className="sep" />
       <button className="btn" disabled={!canUndo || mode === "run"} onClick={() => st().undo()} title={tr("Отменить (Ctrl+Z)")} aria-label={tr("Отменить")}>
         <Icon name="undo" />
@@ -103,11 +115,19 @@ export function Toolbar({ extra }: { extra?: React.ReactNode }) {
             className="menu-item"
             onClick={() => {
               close();
-              if (!confirm(tr("Начать новый проект? Текущий можно вернуть через Отменить."))) return;
-              st().replaceProject(emptyProject());
+              setProjects("new");
             }}
           >
             <Icon name="file" /> {tr("Новый проект")}
+          </button>
+          <button
+            className="menu-item"
+            onClick={() => {
+              close();
+              setProjects("versions");
+            }}
+          >
+            <Icon name="layers" /> {tr("Версии проекта")}
           </button>
           <button
             className="menu-item"

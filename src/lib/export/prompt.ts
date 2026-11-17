@@ -65,7 +65,13 @@ function describeElement(e: Element, p: Project): string {
     else if ("back" in a) parts.push("**нажатие → назад**");
     else parts.push(`**нажатие → ссылка ${a.url}**`);
   }
-  if (e.bind) parts.push(`данные: таблица \`${e.bind.table}\`, режим ${e.bind.mode}${e.bind.field ? `, поле \`${e.bind.field}\`` : ""}`);
+  if (e.bind) {
+    const b = e.bind;
+    const field = b.field ? `, поле \`${b.field}\`` : "";
+    if (b.mode === "record") parts.push(`данные: поле выбранной записи таблицы \`${b.table}\`${field} (запись приходит параметром экрана)`);
+    else parts.push(`данные: таблица \`${b.table}\`, режим ${b.mode}${field}`);
+    if (b.mode === "list" && a && "to" in a) parts.push(`**нажатие на строку передаёт выбранную запись \`${b.table}\` экрану «${p.screens.find((s) => s.id === a.to)?.name ?? "?"}»**`);
+  }
   if (e.hidden) parts.push("(скрыт)");
   return "- " + parts.join("; ");
 }

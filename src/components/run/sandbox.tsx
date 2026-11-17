@@ -3,14 +3,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { uid } from "../../lib/ids";
 import type { Element, Project, Table } from "../../lib/model";
 import type { SandboxData } from "../../lib/sandbox";
-import { addRow, listRows, parseSandbox, singleValue, validateRow } from "../../lib/sandbox";
+import { sandboxKey } from "../../store/projects";
+import { addRow, listItems, listRows, parseSandbox, recordValue, singleValue, validateRow } from "../../lib/sandbox";
 import { tr } from "../../lib/i18n";
 
-const KEY = "tma-builder:sandbox";
 
-function load(): SandboxData {
+function load(key: string): SandboxData {
   try {
-    return parseSandbox(JSON.parse(localStorage.getItem(KEY) ?? "{}"));
+    return parseSandbox(JSON.parse(localStorage.getItem(key) ?? "{}"));
   } catch {
     return {};
   }
@@ -60,15 +60,17 @@ function SandboxForm({ el, table, onAdd }: { el: Element; table: Table; onAdd: (
   );
 }
 
-export function useSandbox(project: Project) {
-  const [data, setData] = useState<SandboxData>(load);
+/** Песочница своя у каждого проекта. */
+export function useSandbox(project: Project, projectId: string) {
+  const key = sandboxKey(projectId || "default");
+  const [data, setData] = useState<SandboxData>(() => load(key));
   useEffect(() => {
     try {
-      localStorage.setItem(KEY, JSON.stringify(data));
+      localStorage.setItem(key, JSON.stringify(data));
     } catch {
       /* переполнение — песочница не критична */
     }
-  }, [data]);
+  }, [data, key]);
 
   const tables = useMemo(() => new Map((project.data?.tables ?? []).map((t) => [t.name, t])), [project.data]);
 
@@ -83,18 +85,33 @@ export function useSandbox(project: Project) {
     [data, tables],
   );
 
+  /** id записи в строке списка (в том же порядке, что и rowsFor). */
+  const rowIdAt = useCallback(
+    (el: Element, index: number) => {
+      const t = el.bind && tables.get(el.bind.table);
+      if (!t || !el.bind) return undefined;
+      return listItems(data, t, el.bind)[index]?.id;
+    },
+    [data, tables],
+  );
+
+  /** Значение для режимов value и record — подставляется в текст (или картинку) элемента. */
+  const valueFor = useCallback(
+    (el: Element, records?: Record<string, string>) => {
+      const t = el.bind && tables.get(el.bind.table);
+      if (!t || !el.bind) return undefined;
+      if (el.bind.mode === "value") return singleValue(data, t, el.bind);
+      if (el.bind.mode === "record") return recordValue(data, t, el.bind, records?.[t.name]);
+      return undefined;
+    },
+    [data, tables],
+  );
+
   const renderForm = useCallback(
     (el: Element) => {
       if (!el.bind) return undefined;
       const t = tables.get(el.bind.table);
       if (!t) return undefined;
-      if (el.bind.mode === "value") {
-        return (
-          <div className="el-text" style={{ height: "100%", fontSize: el.style.fontSize, fontWeight: el.style.fontWeight }}>
-            {singleValue(data, t, el.bind)}
-          </div>
-        );
-      }
       if (el.bind.mode !== "form") return undefined;
       return (
         <SandboxForm
@@ -125,5 +142,5 @@ export function useSandbox(project: Project) {
       </button>
     ) : null;
 
-  return { rowsFor, renderForm, toolbar };
+  return { rowsFor, rowIdAt, valueFor, renderForm, toolbar };
 }

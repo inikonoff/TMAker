@@ -3,7 +3,7 @@
 import { KIND_SPEC, makeElement } from "./defaults";
 import { screenSize } from "./devices";
 import { uid } from "./ids";
-import type { Element, FieldType, Kind, Project, Table } from "./model";
+import type { BindMode, Element, FieldType, Kind, Project, Table } from "./model";
 import { KINDS } from "./model";
 import { addScreen, elementsOf, syncArrows } from "./ops";
 import { placeNew } from "./placement";
@@ -55,10 +55,11 @@ export function buildMessages(task: AiTask, p: Project, input: { prompt: string;
 
 Собери НОВЫЙ экран по описанию: «${input.prompt}».
 Форма ответа:
-{"name": "Имя экрана", "elements": [ {"kind": "...", "text": "...", "items": ["..."], "placeholder": "...", "bind": {"table": "...", "mode": "list"|"form"|"value", "field": "..."}, "goTo": "имя существующего экрана или back"} ], "tables": [ {"name": "...", "fields": [ {"name": "...", "type": "text"|"number"|"boolean"|"date"|"image"|"ref", "required": true, "ref": "..."} ]} ]}
+{"name": "Имя экрана", "elements": [ {"kind": "...", "text": "...", "items": ["..."], "placeholder": "...", "bind": {"table": "...", "mode": "list"|"form"|"value"|"record", "field": "..."}, "goTo": "имя существующего экрана или back"} ], "tables": [ {"name": "...", "fields": [ {"name": "...", "type": "text"|"number"|"boolean"|"date"|"image"|"ref", "required": true, "ref": "..."} ]} ]}
 Допустимые kind: ${AI_KINDS.join(", ")}.
 Элементы перечисляй сверху вниз. headerBar — шапка, nav — нижняя навигация, mainButton — главная кнопка Telegram внизу.
 Для списка записей используй kind "list" с bind mode "list"; для формы добавления — kind "card" с bind mode "form".
+Если у списка есть goTo, нажатие на строку открывает экран и передаёт выбранную запись; на экране деталей используй bind mode "record" с field — поле этой записи.
 Если нужных таблиц нет в проекте — опиши их в "tables". Поля необязательны, лишнее не добавляй.`,
       },
     ];
@@ -173,7 +174,7 @@ export function applyScreenDraft(p: Project, raw: unknown): DraftResult {
     if (str(item.placeholder) !== undefined) c.placeholder = str(item.placeholder)!;
     if (Object.keys(c).length) el.content = c;
     if (isObj(item.bind) && tableNames.has(String(item.bind.table))) {
-      const mode = ["list", "form", "value"].includes(String(item.bind.mode)) ? (item.bind.mode as "list" | "form" | "value") : "list";
+      const mode = ["list", "form", "value", "record"].includes(String(item.bind.mode)) ? (item.bind.mode as BindMode) : "list";
       el.bind = { table: String(item.bind.table), mode, ...(str(item.bind.field) ? { field: str(item.bind.field)! } : {}) };
       if (mode === "form") el.h = Math.max(el.h, 60 + 46 * (tables.find((t) => t.name === el.bind!.table)?.fields.length ?? 1));
     }

@@ -67,7 +67,13 @@ export type Action =
   | { back: true }
   | { open: "link"; url: string };
 
-export type Binding = { table: string; mode: "list" | "form" | "value"; field?: string };
+/**
+ * Привязка к данным. list — список записей; form — форма добавления; value — одно значение (поле последней
+ * записи или их число); record — поле записи, выбранной на предыдущем экране (нажатие на строку списка,
+ * у которого есть действие «перейти на экран», передаёт эту запись).
+ */
+export type BindMode = "list" | "form" | "value" | "record";
+export type Binding = { table: string; mode: BindMode; field?: string };
 
 /** Конец коннектора: привязан к элементу или свободная точка (координаты экрана). */
 export type ArrowEnd = { el?: string; x: number; y: number };

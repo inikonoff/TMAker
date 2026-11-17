@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Table } from "./model";
-import { addRow, listRows, parseSandbox, removeRow, singleValue, validateRow } from "./sandbox";
+import { addRow, listItems, listRows, parseSandbox, recordValue, removeRow, singleValue, validateRow } from "./sandbox";
 
 const tasks: Table = {
   name: "tasks",
@@ -35,5 +35,17 @@ describe("sandbox", () => {
     expect(parseSandbox(JSON.parse(JSON.stringify(d)))).toEqual(d);
     expect(parseSandbox("x")).toEqual({});
     expect(parseSandbox({ t: [{ nope: 1 }] })).toEqual({ t: [] });
+  });
+
+  it("список → деталь: строки с id и поле выбранной записи", () => {
+    let d = addRow({}, "tasks", { title: "A", hours: 1, done: true }, "r1", 1);
+    d = addRow(d, "tasks", { title: "B", hours: null, done: false }, "r2", 2);
+    expect(listItems(d, tasks, { table: "tasks", mode: "list" })).toEqual([
+      { id: "r2", label: "B" },
+      { id: "r1", label: "A" },
+    ]);
+    expect(recordValue(d, tasks, { table: "tasks", mode: "record", field: "done" }, "r1")).toBe("✓");
+    expect(recordValue(d, tasks, { table: "tasks", mode: "record" }, "r2")).toBe("B");
+    expect(recordValue(d, tasks, { table: "tasks", mode: "record" }, undefined)).toBe("—");
   });
 });

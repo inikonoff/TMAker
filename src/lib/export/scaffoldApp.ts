@@ -73,7 +73,7 @@ export type El = {
   id: string; screenId: string; kind: string; x: number; y: number; w: number; h: number; z: number;
   hidden?: boolean; style: Style; action?: Action;
   content?: { text?: string; image?: string; imageFit?: string; items?: string[]; checked?: boolean; value?: number; placeholder?: string; shape?: string };
-  bind?: { table: string; mode: "list" | "form" | "value"; field?: string };
+  bind?: { table: string; mode: "list" | "form" | "value" | "record"; field?: string };
   arrow?: { from: { x: number; y: number }; to: { x: number; y: number }; head: string };
 };
 export type Screen = { id: string; name: string; bg: string; device?: unknown; swipe?: Record<string, string> };
@@ -215,7 +215,8 @@ function Form({ el, onSaved }: { el: El; onSaved: () => void }) {
 export function App() {
   const t = useTokens();
   const color = (c?: string) => (!c ? "transparent" : c.startsWith("$") ? t[c.slice(1)] ?? "transparent" : c);
-  const [stack, setStack] = useState<{ id: string; via: string }[]>([{ id: project.screens[0]!.id, via: "none" }]);
+  // records — выбранные записи (параметры экрана): таблица → запись. Передаются нажатием на строку списка.
+  const [stack, setStack] = useState<{ id: string; via: string; records?: Record<string, Row> }[]>([{ id: project.screens[0]!.id, via: "none" }]);
   const [anim, setAnim] = useState("none");
   const [rows, setRows] = useState<Record<string, Row[]>>({});
   const [width, setWidth] = useState(window.innerWidth);
@@ -235,9 +236,9 @@ export function App() {
   const reload = () => tables.forEach((name) => listRows(name).then((r) => setRows((s) => ({ ...s, [name]: r })), () => {}));
   useEffect(reload, [cur.id]);
 
-  const go = (to: string, via: string) => {
+  const go = (to: string, via: string, records = cur.records) => {
     setAnim(via);
-    setStack((s) => [...s, { id: to, via }]);
+    setStack((s) => [...s, { id: to, via, records }]);
   };
   // «Назад» — зеркальный переход.
   const MIRROR: Record<string, string> = { slideLeft: "slideRight", slideRight: "slideLeft", none: "none" };
@@ -246,11 +247,12 @@ export function App() {
     setAnim(MIRROR[stack[stack.length - 1]!.via] ?? "fade");
     setStack((s) => s.slice(0, -1));
   };
-  const act = (e: El) => {
+  const act = (e: El, row?: Row) => {
     const a = e.action;
     if (!a) return e.kind === "backButton" ? back() : undefined;
     if ("back" in a) return back();
     if ("open" in a) return tg ? tg.openLink(a.url) : window.open(a.url, "_blank");
+    if (row && e.bind) return go(a.to, a.transition, { ...cur.records, [e.bind.table]: row });
     go(a.to, a.transition);
   };
 
@@ -278,7 +280,8 @@ export function App() {
   const field = (e: El, r: Row) => {
     const table = project.data?.tables.find((x) => x.name === e.bind!.table);
     const f = e.bind!.field ?? table?.fields.find((x) => x.type === "text")?.name ?? table?.fields[0]?.name;
-    return String(f ? r[f] ?? "—" : r.id);
+    const v = f ? r[f] : r.id;
+    return v === null || v === undefined ? "—" : typeof v === "boolean" ? (v ? "✓" : "✗") : String(v);
   };
 
   const render = (e: El) => {
@@ -299,12 +302,22 @@ export function App() {
     if (e.kind === "image" && c.image) inner = <img src={img(c.image)} alt="" style={{ width: "100%", height: "100%", objectFit: c.imageFit === "contain" ? "contain" : "cover" }} />;
     if (e.kind === "input") inner = <input placeholder={c.placeholder} style={{ border: 0, background: "transparent", font: "inherit", color: "inherit", width: "100%", outline: 0 }} />;
     if (e.kind === "list" || e.kind === "tabs" || e.kind === "nav") {
-      const items = e.bind?.mode === "list" ? (rows[e.bind.table] ?? []).map((r) => field(e, r)) : c.items ?? [];
+      const bound = e.bind?.mode === "list" ? rows[e.bind.table] ?? [] : null;
+      const items = bound ? bound.map((r) => field(e, r)) : c.items ?? [];
       css.flexDirection = e.kind === "list" ? "column" : "row";
       css.alignItems = "stretch";
       inner = items.map((it, i) => (
-        <div key={i} style={{ flex: e.kind === "list" ? "0 0 48px" : 1, display: "flex", alignItems: "center", justifyContent: e.kind === "list" ? "flex-start" : "center", padding: "0 16px", borderBottom: e.kind === "list" ? \`1px solid \${t.border}\` : undefined, color: e.kind !== "list" && i === (c.value ?? 0) ? t.accent : undefined }}>{it}</div>
+        <div
+          key={i}
+          // Строка привязанного списка с действием открывает экран и передаёт запись.
+          onClick={bound && e.action ? (ev) => { ev.stopPropagation(); act(e, bound[i]); } : undefined}
+          style={{ cursor: bound && e.action ? "pointer" : undefined, flex: e.kind === "list" ? "0 0 48px" : 1, display: "flex", alignItems: "center", justifyContent: e.kind === "list" ? "flex-start" : "center", padding: "0 16px", borderBottom: e.kind === "list" ? \`1px solid \${t.border}\` : undefined, color: e.kind !== "list" && i === (c.value ?? 0) ? t.accent : undefined }}>{it}</div>
       ));
+    }
+    if (e.bind?.mode === "record") {
+      const rec = cur.records?.[e.bind.table];
+      const v = rec ? field(e, rec) : "—";
+      inner = e.kind === "image" && (v.startsWith("http") || v.startsWith("/")) ? <img src={v} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : v;
     }
     if (e.bind?.mode === "value") inner = e.bind.field ? (rows[e.bind.table]?.[0] ? field(e, rows[e.bind.table]![0]!) : "—") : String(rows[e.bind.table]?.length ?? 0);
     if (e.kind === "switch" || e.kind === "checkbox") inner = <input type="checkbox" defaultChecked={c.checked} style={{ accentColor: t.accent }} />;

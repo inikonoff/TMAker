@@ -6,9 +6,11 @@ import type { Element, Screen } from "../../lib/model";
 import { ElementBody } from "../ElementBody";
 
 export type RunHandlers = {
-  onAction: (el: Element) => void;
+  /** rowIndex — номер нажатой строки списка (для передачи записи на следующий экран). */
+  onAction: (el: Element, rowIndex?: number) => void;
   rowsFor?: (el: Element) => string[] | undefined;
   renderForm?: (el: Element) => React.ReactNode;
+  valueFor?: (el: Element, records?: Record<string, string>) => string | undefined;
 };
 
 type Props = {
@@ -19,11 +21,12 @@ type Props = {
   h: number;
   highlight: boolean;
   handlers: RunHandlers;
+  records?: Record<string, string>;
 };
 
 const TOGGLES = new Set(["switch", "checkbox"]);
 
-export const RunScreen = memo(function RunScreen({ screen, elements, tokens, w, h, highlight, handlers }: Props) {
+export const RunScreen = memo(function RunScreen({ screen, elements, tokens, w, h, highlight, handlers, records }: Props) {
   // Переключатели и флажки живые в превью, но в проект не пишутся.
   const [local, setLocal] = useState<Record<string, Partial<NonNullable<Element["content"]>>>>({});
   return (
@@ -33,7 +36,12 @@ export const RunScreen = memo(function RunScreen({ screen, elements, tokens, w, 
       {elements.map((el) => {
         if (el.hidden) return null;
         const override = local[el.id];
-        const shown = override ? { ...el, content: { ...el.content, ...override } } : el;
+        let shown = override ? { ...el, content: { ...el.content, ...override } } : el;
+        const value = handlers.valueFor?.(el, records);
+        if (value !== undefined) {
+          const isUrl = /^(https?:|data:image\/)/.test(value);
+          shown = { ...shown, content: { ...shown.content, ...(el.kind === "image" ? (isUrl ? { image: value } : {}) : { text: value }) } };
+        }
         const clickable = !!el.action || el.kind === "backButton" || TOGGLES.has(el.kind) || el.kind === "tabs" || el.kind === "nav";
         const form = handlers.renderForm?.(el);
         return (
@@ -50,7 +58,8 @@ export const RunScreen = memo(function RunScreen({ screen, elements, tokens, w, 
                 const i = Math.min(n - 1, Math.floor(((e.clientX - r.left) / r.width) * n));
                 setLocal((s) => ({ ...s, [el.id]: { value: i } }));
               }
-              handlers.onAction(el);
+              const row = (e.target as HTMLElement).closest<HTMLElement>("[data-row]");
+              handlers.onAction(el, row ? Number(row.dataset.row) : undefined);
             }}
           >
             {form ?? <ElementBody el={shown} tokens={tokens} rows={handlers.rowsFor?.(el)} />}

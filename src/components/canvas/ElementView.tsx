@@ -1,6 +1,6 @@
 import { motion, useMotionValueEvent, useTransform } from "motion/react";
 import type { PointerEvent as RPointerEvent } from "react";
-import { memo, useRef, useState } from "react";
+import { memo, useMemo, useRef, useState } from "react";
 import type { Tokens } from "../../lib/color";
 import type { Element } from "../../lib/model";
 import { resolveArrow } from "../../lib/ops";
@@ -24,6 +24,18 @@ function onDown(e: RPointerEvent, el: Element) {
   startElementDrag(e, el);
 }
 
+/** На холсте привязанные значения показываются подсказкой {таблица.поле}, а не заглушкой. */
+function withBindingHint(el: Element): Element {
+  const b = el.bind;
+  if (b?.mode === "list" && el.kind === "list") {
+    const f = `{${b.table}.${b.field ?? "…"}}`;
+    return { ...el, content: { ...el.content, items: [f, f, f] } };
+  }
+  if (!b || (b.mode !== "value" && b.mode !== "record") || el.kind === "image") return el;
+  const hint = b.mode === "value" && !b.field ? `{${b.table}.count}` : `{${b.table}.${b.field ?? "…"}}`;
+  return { ...el, content: { ...el.content, text: hint } };
+}
+
 /** Элемент на холсте. Во время перетаскивания позиция = база + общее смещение (MotionValue). */
 export const ElementView = memo(function ElementView({ el, tokens, dragging }: Props) {
   const base = useRef({ x: el.x, y: el.y });
@@ -31,6 +43,7 @@ export const ElementView = memo(function ElementView({ el, tokens, dragging }: P
   const dx = useTransform(dragOX, (v) => base.current.x + v);
   const dy = useTransform(dragOY, (v) => base.current.y + v);
   const lineLike = el.kind === "line" || el.kind === "arrow";
+  const shown = useMemo(() => withBindingHint(el), [el]);
   return (
     <motion.div
       className={`el${el.hidden ? " hidden-el" : ""}`}
@@ -45,7 +58,7 @@ export const ElementView = memo(function ElementView({ el, tokens, dragging }: P
       }}
       onPointerDown={(e) => onDown(e, el)}
     >
-      {lineLike ? <ArrowSvg el={el} tokens={tokens} hit /> : <ElementBody el={el} tokens={tokens} />}
+      {lineLike ? <ArrowSvg el={el} tokens={tokens} hit /> : <ElementBody el={shown} tokens={tokens} />}
     </motion.div>
   );
 });

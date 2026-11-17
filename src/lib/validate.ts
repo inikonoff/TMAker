@@ -140,7 +140,7 @@ function action(v: unknown, screenIds: Set<string>, warn: (m: string) => void): 
 
 function binding(v: unknown): Binding | undefined {
   if (!isObj(v) || typeof v.table !== "string") return undefined;
-  const b: Binding = { table: v.table, mode: oneOf(v.mode, ["list", "form", "value"] as const, "list") };
+  const b: Binding = { table: v.table, mode: oneOf(v.mode, ["list", "form", "value", "record"] as const, "list") };
   if (typeof v.field === "string") b.field = v.field;
   return b;
 }

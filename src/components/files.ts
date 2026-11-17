@@ -1,6 +1,8 @@
 // Открытие и сохранение проекта как JSON-файла.
 import { parseProject } from "../lib/validate";
-import { resetHistory, useEditor } from "../store/editor";
+import { useEditor } from "../store/editor";
+import { openAsNewProject } from "../store/persist";
+import { fitAll } from "./canvas/Canvas";
 import { tr } from "../lib/i18n";
 
 export function download(name: string, data: Blob | string, type = "application/json") {
@@ -29,18 +31,18 @@ export function saveJson() {
   download(`${safeFileName(p.title)}.json`, JSON.stringify(p, null, 2));
 }
 
-/** Открыть JSON: проходит через валидатор; замена документа — один шаг отмены. */
-export function openJsonText(text: string, opts: { fresh?: boolean } = {}) {
+/** Открыть JSON: проходит через валидатор и открывается новым проектом (текущий не затирается). */
+export async function openJsonText(text: string) {
   const st = useEditor.getState();
   const r = parseProject(text);
   if (!r.ok) {
     st.showToast(tr("Не удалось открыть: {e}", { e: tr(r.error) }));
     return false;
   }
-  st.replaceProject(r.project);
-  if (opts.fresh) resetHistory();
+  await openAsNewProject(r.project);
   st.showToast(r.warnings.length ? tr("Открыто с замечаниями: {n}", { n: r.warnings.length }) : tr("Проект открыт"));
   if (r.warnings.length) console.info("Замечания валидатора:", r.warnings);
+  requestAnimationFrame(() => fitAll(document.querySelector(".canvas")));
   return true;
 }
 
@@ -50,7 +52,7 @@ export function pickJson() {
   input.accept = "application/json,.json";
   input.onchange = async () => {
     const f = input.files?.[0];
-    if (f) openJsonText(await f.text());
+    if (f) void openJsonText(await f.text());
   };
   input.click();
 }

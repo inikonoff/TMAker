@@ -31,8 +31,10 @@ import type { RunHandlers } from "./RunScreen";
 import { RunScreen } from "./RunScreen";
 import { tr } from "../../lib/i18n";
 
-type Step = { id: string; via: TransitionKind };
-type Anim = { from: string; to: string; kind: TransitionKind; dir: Direction; swipe?: boolean };
+/** records — выбранные записи по таблицам (параметры экрана): таблица → id записи. */
+type Records = Record<string, string>;
+type Step = { id: string; via: TransitionKind; records?: Records };
+type Anim = { from: string; to: string; kind: TransitionKind; dir: Direction; swipe?: boolean; fromRecords?: Records; toRecords?: Records };
 export type PreviewTheme = "project" | "tg-light" | "tg-dark";
 
 function Layer({
@@ -79,7 +81,8 @@ export function RunView() {
   const boxRef = useRef<HTMLDivElement>(null);
   const [avail, setAvail] = useState({ w: 800, h: 600 });
   const reduced = prefersReducedMotion();
-  const sandbox = useSandbox(project);
+  const projectId = useEditor((s) => s.projectId);
+  const sandbox = useSandbox(project, projectId);
 
   const tokens: Tokens = useMemo(() => {
     if (previewTheme === "tg-light") return telegramTokens(TELEGRAM_THEMES.light);
@@ -141,21 +144,23 @@ export function RunView() {
     ctl.then(complete, complete);
   };
 
-  const go = (to: string, kind: TransitionKind) => {
-    if (!byId.has(to) || to === current.id) return;
+  const go = (to: string, kind: TransitionKind, records: Records | undefined = current.records) => {
+    if (!byId.has(to) || (to === current.id && records === current.records)) return;
     // Свайп/«назад» с reduced motion → только растворение.
     const k = reduced && kind !== "none" ? "fade" : kind;
-    run({ from: current.id, to, kind: k, dir: "forward" }, () => setStack((s) => [...s, { id: to, via: k }]));
+    run({ from: current.id, to, kind: k, dir: "forward", fromRecords: current.records, toRecords: records }, () =>
+      setStack((s) => [...s, { id: to, via: k, records }]),
+    );
   };
 
   const back = () => {
     if (stack.length < 2) return;
     const top = stack[stack.length - 1]!;
     const prev = stack[stack.length - 2]!;
-    run({ from: top.id, to: prev.id, kind: top.via, dir: "back" }, () => setStack((s) => s.slice(0, -1)));
+    run({ from: top.id, to: prev.id, kind: top.via, dir: "back", fromRecords: top.records, toRecords: prev.records }, () => setStack((s) => s.slice(0, -1)));
   };
 
-  const onAction = (el: Element) => {
+  const onAction = (el: Element, rowIndex?: number) => {
     const a = el.action;
     if (!a) {
       if (el.kind === "backButton") return back();
@@ -167,10 +172,15 @@ export function RunView() {
       window.open(a.url, "_blank", "noopener");
       return;
     }
+    // Нажатие на строку списка, привязанного к таблице, передаёт эту запись следующему экрану.
+    if (el.bind?.mode === "list" && rowIndex !== undefined) {
+      const rowId = sandbox.rowIdAt(el, rowIndex);
+      if (rowId) return go(a.to, a.transition, { ...current.records, [el.bind.table]: rowId });
+    }
     go(a.to, a.transition);
   };
 
-  const handlers: RunHandlers = { onAction, rowsFor: sandbox.rowsFor, renderForm: sandbox.renderForm };
+  const handlers: RunHandlers = { onAction, rowsFor: sandbox.rowsFor, renderForm: sandbox.renderForm, valueFor: sandbox.valueFor };
 
   // ---------- Свайп «за пальцем» ----------
   const swipe = useRef<{ x: number; y: number; t: number; dir: keyof Swipe | null; target: string | null; back: boolean; w: number; h: number } | null>(null);
@@ -196,14 +206,14 @@ export function RunView() {
       if (target && target !== current.id) {
         s.target = target;
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-        setAnim({ from: current.id, to: target, kind: SWIPE_TRANSITION[dir], dir: "forward", swipe: true });
+        setAnim({ from: current.id, to: target, kind: SWIPE_TRANSITION[dir], dir: "forward", swipe: true, fromRecords: current.records, toRecords: current.records });
       } else if (dir === "right" && stack.length > 1 && stack[stack.length - 1]!.via !== "none") {
         // Свайп вправо без настройки — «назад», если пришли сдвигом.
         const top = stack[stack.length - 1]!;
         s.back = true;
         s.target = stack[stack.length - 2]!.id;
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-        setAnim({ from: top.id, to: s.target, kind: top.via, dir: "back", swipe: true });
+        setAnim({ from: top.id, to: s.target, kind: top.via, dir: "back", swipe: true, fromRecords: top.records, toRecords: stack[stack.length - 2]!.records });
       } else {
         swipe.current = null;
         return;
@@ -233,7 +243,7 @@ export function RunView() {
       () => {
         if (!commit) return;
         if (isBack) setStack((st) => st.slice(0, -1));
-        else setStack((st) => [...st, { id: target, via: SWIPE_TRANSITION[s.dir!] }]);
+        else setStack((st) => [...st, { id: target, via: SWIPE_TRANSITION[s.dir!], records: st[st.length - 1]?.records }]);
       },
       p,
       commit ? 1 : 0,
@@ -249,7 +259,7 @@ export function RunView() {
   const frameW = useTransform(progress, (t) => lerp(fromSize.w, toSize.w, t) * frameScale);
   const frameH = useTransform(progress, (t) => lerp(fromSize.h, toSize.h, t) * frameScale);
 
-  const renderScreen = (id: string) => {
+  const renderScreen = (id: string, records: Records | undefined) => {
     const s = byId.get(id);
     if (!s) return null;
     const { w, h } = sizeOf(id);
@@ -262,6 +272,7 @@ export function RunView() {
         h={h}
         highlight={highlight || flash > 0}
         handlers={handlers}
+        records={records}
       />
     );
   };
@@ -314,14 +325,14 @@ export function RunView() {
           {anim && poses ? (
             <>
               <Layer progress={progress} from={poses.outgoing.from} to={poses.outgoing.to} w={layerSize(anim.from).w} h={layerSize(anim.from).h} z={poses.incomingOnTop ? 1 : 2}>
-                {renderScreen(anim.from)}
+                {renderScreen(anim.from, anim.fromRecords)}
               </Layer>
               <Layer progress={progress} from={poses.incoming.from} to={poses.incoming.to} w={layerSize(anim.to).w} h={layerSize(anim.to).h} z={poses.incomingOnTop ? 2 : 1}>
-                {renderScreen(anim.to)}
+                {renderScreen(anim.to, anim.toRecords)}
               </Layer>
             </>
           ) : (
-            renderScreen(current.id)
+            renderScreen(current.id, current.records)
           )}
         </div>
       </motion.div>

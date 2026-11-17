@@ -52,6 +52,20 @@ export function listRows(data: SandboxData, table: Table, bind: Binding): string
   return [...(data[table.name] ?? [])].reverse().map((r) => formatValue(f ? r[f] : r._id));
 }
 
+/** Строки списка с id — чтобы нажатие на строку передало запись на следующий экран. */
+export function listItems(data: SandboxData, table: Table, bind: Binding): { id: string; label: string }[] {
+  const f = displayField(table, bind);
+  return [...(data[table.name] ?? [])].reverse().map((r) => ({ id: r._id, label: formatValue(f ? r[f] : r._id) }));
+}
+
+/** Поле выбранной записи (режим record). Нет записи — «—». */
+export function recordValue(data: SandboxData, table: Table, bind: Binding, rowId: string | undefined): string {
+  const row = rowId ? (data[table.name] ?? []).find((r) => r._id === rowId) : undefined;
+  if (!row) return "—";
+  const f = displayField(table, bind);
+  return formatValue(f ? row[f] : row._id);
+}
+
 /** Одиночное значение: поле последней записи или число записей. */
 export function singleValue(data: SandboxData, table: Table, bind: Binding): string {
   const rows = data[table.name] ?? [];

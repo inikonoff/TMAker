@@ -181,6 +181,7 @@ function Body({ el, tokens, rows }: BodyProps) {
           {items.map((t, i) => (
             <div
               key={i}
+              data-row={i}
               style={{
                 ...textCss(el, tokens),
                 flex: `0 0 ${Math.max(28, el.h / Math.max(n, rows ? 1 : n))}px`,
@@ -207,6 +208,7 @@ function Body({ el, tokens, rows }: BodyProps) {
           {items.map((t, i) => (
             <div
               key={i}
+              data-row={i}
               style={{
                 ...textCss(el, tokens),
                 flex: 1,

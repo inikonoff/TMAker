@@ -43,7 +43,7 @@ type Project = {
               style: { fill; stroke: { style; width; color }; radius; shadow; opacity; textColor; fontSize; fontWeight; align };
               content?: { text?; image?; imageFit?; items?; checked?; value?; placeholder?; shape?; sides? };
               action?: { to: string; transition: string } | { back: true } | { open: "link"; url: string };
-              bind?: { table: string; mode: "list" | "form" | "value"; field?: string };
+              bind?: { table: string; mode: "list" | "form" | "value" | "record"; field?: string };
               arrow?: { from: { el?: string; x; y }; to: { el?: string; x; y }; head: "none" | "end" | "both" } }[];
   data?: { tables: { name: string; fields: { name: string; type: "text"|"number"|"boolean"|"date"|"image"|"ref"; required: boolean; ref?: string }[] }[] };
   bot?: { name: string; commands: { command: string; description: string }[] };
@@ -51,6 +51,14 @@ type Project = {
 \`\`\`
 
 Координаты элементов — относительно левого верхнего угла своего экрана. \`z\` — порядок слоёв.
+
+### Данные и параметры экранов
+
+- \`bind.mode: "list"\` — список записей таблицы (новые сверху), показывается \`field\` или первое текстовое поле.
+- \`bind.mode: "form"\` — форма добавления записи со всеми полями таблицы.
+- \`bind.mode: "value"\` — одно значение: \`field\` последней записи, без \`field\` — число записей.
+- \`bind.mode: "record"\` — поле **выбранной записи**. Запись выбирается нажатием на строку списка, у которого есть
+  \`action.to\`: экран открывается с параметром (например, \`/tasks/:id\`), а элементы с \`record\` показывают её поля.
 `;
 }
 
