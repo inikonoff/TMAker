@@ -1151,3 +1151,134 @@ table.fields td {
   gap: 6px;
   align-items: center;
 }
+
+/* ---------- Инструкция ---------- */
+.modal.guide-modal {
+  width: min(1040px, 100%);
+  height: min(860px, calc(100vh - 32px));
+  display: flex;
+  flex-direction: column;
+}
+
+.guide-grid {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 16px;
+  min-height: 0;
+  flex: 1;
+}
+
+.guide-toc {
+  overflow: auto;
+  border-right: 1px solid var(--line);
+  padding-right: 8px;
+}
+
+.guide-toc .menu-item {
+  font-size: 13px;
+  padding: 6px 8px;
+}
+
+.guide-body {
+  overflow: auto;
+  padding: 0 8px 24px 0;
+  line-height: 1.55;
+}
+
+.guide-body h2 {
+  font-size: 22px;
+  margin: 0 0 12px;
+}
+
+.guide-body h3 {
+  font-size: 17px;
+  margin: 28px 0 8px;
+  scroll-margin-top: 8px;
+}
+
+.guide-body h4 {
+  font-size: 15px;
+  margin: 18px 0 6px;
+}
+
+.guide-body p,
+.guide-body li {
+  color: var(--text);
+}
+
+.guide-body a {
+  color: var(--accent);
+}
+
+.guide-body figure {
+  margin: 12px 0 18px;
+}
+
+.guide-body figure img {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.guide-body figcaption {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.guide-body blockquote {
+  margin: 12px 0;
+  padding: 8px 12px;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  border-radius: 0 8px 8px 0;
+}
+
+.guide-body pre {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  overflow: auto;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.guide-body pre code {
+  background: none;
+  padding: 0;
+  white-space: pre-wrap;
+}
+
+.guide-table {
+  overflow-x: auto;
+  margin: 8px 0 16px;
+}
+
+.guide-table table {
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.guide-table th,
+.guide-table td {
+  border: 1px solid var(--line);
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.guide-table th {
+  background: var(--panel-2);
+}
+
+@media (max-width: 760px) {
+  .guide-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .guide-toc {
+    display: none;
+  }
+}

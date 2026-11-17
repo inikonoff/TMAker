@@ -247,7 +247,12 @@ export function Inspector() {
               style={{ marginBottom: 8 }}
             />
           )}
-          {ITEM_KINDS.has(el.kind) && (
+          {ITEM_KINDS.has(el.kind) && el.bind?.mode === "list" && (
+            <p className="hint" style={{ marginTop: 0 }}>
+              {tr("Строки берутся из таблицы «{t}» — см. раздел «Данные» ниже.", { t: el.bind.table })}
+            </p>
+          )}
+          {ITEM_KINDS.has(el.kind) && el.bind?.mode !== "list" && (
             <>
               <textarea
                 className="input"

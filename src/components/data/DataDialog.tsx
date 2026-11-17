@@ -4,6 +4,7 @@ import { addField, addTable, deleteField, deleteTable, moveField, renameTable, u
 import type { FieldType, Project } from "../../lib/model";
 import { useEditor } from "../../store/editor";
 import { Icon } from "../Icon";
+import { SampleData } from "./SampleData";
 import { tr } from "../../lib/i18n";
 
 const TYPES: { value: FieldType; label: string }[] = [
@@ -228,7 +229,7 @@ function BotEditor({ project }: { project: Project }) {
 
 export function DataDialog({ onClose }: { onClose: () => void }) {
   const project = useEditor((s) => s.project);
-  const [tab, setTab] = useState<"data" | "bot">("data");
+  const [tab, setTab] = useState<"data" | "sample" | "bot">("data");
   return (
     <div className="modal-back" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal wide" role="dialog" aria-modal="true" aria-labelledby="data-title">
@@ -238,15 +239,20 @@ export function DataDialog({ onClose }: { onClose: () => void }) {
             <Icon name="close" />
           </button>
         </div>
-        <div className="seg" style={{ maxWidth: 260, marginBottom: 12 }}>
+        <div className="seg" style={{ maxWidth: 420, marginBottom: 12 }}>
           <button className={tab === "data" ? "on" : ""} onClick={() => setTab("data")}>
             {tr("Таблицы")}
+          </button>
+          <button className={tab === "sample" ? "on" : ""} onClick={() => setTab("sample")}>
+            {tr("Тестовые записи")}
           </button>
           <button className={tab === "bot" ? "on" : ""} onClick={() => setTab("bot")}>
             {tr("Бот")}
           </button>
         </div>
-        {tab === "data" ? <TablesEditor project={project} /> : <BotEditor project={project} />}
+        {tab === "data" && <TablesEditor project={project} />}
+        {tab === "sample" && <SampleData project={project} />}
+        {tab === "bot" && <BotEditor project={project} />}
       </div>
     </div>
   );

@@ -12,6 +12,7 @@ import { tr } from "../lib/i18n";
 const AiDialog = lazy(() => import("./ai/AiDialog").then((m) => ({ default: m.AiDialog })));
 const DataDialog = lazy(() => import("./data/DataDialog").then((m) => ({ default: m.DataDialog })));
 const ProjectsDialog = lazy(() => import("./projects/ProjectsDialog").then((m) => ({ default: m.ProjectsDialog })));
+const GuideDialog = lazy(() => import("./help/GuideDialog").then((m) => ({ default: m.GuideDialog })));
 const ExportDialog = lazy(() => import("./export/ExportDialog").then((m) => ({ default: m.ExportDialog })));
 
 function Menu({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
@@ -42,7 +43,8 @@ export function Toolbar({ extra }: { extra?: React.ReactNode }) {
   const editorTheme = useEditor((s) => s.editorTheme);
   const title = useEditor((s) => s.project.title);
   const st = useEditor.getState;
-  const [menu, setMenu] = useState<null | "file" | "keys">(null);
+  const [menu, setMenu] = useState<null | "file" | "keys" | "help">(null);
+  const [guideOpen, setGuideOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [dataOpen, setDataOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
@@ -100,9 +102,51 @@ export function Toolbar({ extra }: { extra?: React.ReactNode }) {
         <Icon name="download" /> <span className="hide-mobile">{tr("Экспорт")}</span>
       </button>
       {exporting && <Suspense fallback={null}><ExportDialog onClose={() => setExporting(false)} /></Suspense>}
-      <button className="btn" data-tour="help" onClick={startTour} title={tr("Пройти обучение")} aria-label={tr("Пройти обучение")}>
+      <button
+        className={`btn${menu === "help" ? " on" : ""}`}
+        data-tour="help"
+        onClick={() => setMenu(menu === "help" ? null : "help")}
+        title={tr("Помощь")}
+        aria-label={tr("Помощь")}
+        aria-haspopup="menu"
+      >
         <Icon name="help" />
       </button>
+      {menu === "help" && (
+        <Menu onClose={close}>
+          <button
+            className="menu-item"
+            onClick={() => {
+              close();
+              startTour();
+            }}
+          >
+            <Icon name="play" /> {tr("Пройти обучение")}
+          </button>
+          <button
+            className="menu-item"
+            onClick={() => {
+              close();
+              setGuideOpen(true);
+            }}
+          >
+            <Icon name="file" /> {tr("Инструкция: мини-приложение к боту")}
+          </button>
+          <button
+            className="menu-item"
+            onClick={() => {
+              setMenu("keys");
+            }}
+          >
+            <Icon name="settings" /> {tr("Горячие клавиши")}
+          </button>
+        </Menu>
+      )}
+      {guideOpen && (
+        <Suspense fallback={null}>
+          <GuideDialog onClose={() => setGuideOpen(false)} />
+        </Suspense>
+      )}
       <button
         className="btn"
         onClick={() => st().setEditorTheme(editorTheme === "light" ? "dark" : "light")}
