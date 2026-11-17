@@ -57,7 +57,7 @@ export function Canvas() {
     return () => setCanvasElement(null);
   }, []);
 
-  // Колесо: панорама; Ctrl/Cmd + колесо и щипок трекпада — зум к курсору. Нативный слушатель, passive: false.
+  // Колесо — масштаб к курсору; Shift + колесо — панорама (для трекпада). Нативный слушатель, passive: false.
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -66,11 +66,14 @@ export function Canvas() {
       const st = useEditor.getState();
       const v = st.viewport;
       const r = el.getBoundingClientRect();
-      if (e.ctrlKey || e.metaKey) {
-        st.setViewport(zoomAt(v, { x: e.clientX - r.left, y: e.clientY - r.top }, wheelZoom(v.z, e.deltaY)));
+      const k = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1;
+      if (e.shiftKey) {
+        // Shift+колесо у мыши даёт deltaY, у трекпада — обе оси.
+        const dx = e.deltaX || e.deltaY;
+        const dy = e.deltaX ? e.deltaY : 0;
+        st.setViewport({ ...v, x: v.x - dx * k, y: v.y - dy * k });
       } else {
-        const k = e.deltaMode === 1 ? 16 : 1;
-        st.setViewport({ ...v, x: v.x - e.deltaX * k, y: v.y - e.deltaY * k });
+        st.setViewport(zoomAt(v, { x: e.clientX - r.left, y: e.clientY - r.top }, wheelZoom(v.z, e.deltaY * k)));
       }
     };
     el.addEventListener("wheel", onWheel, { passive: false });
@@ -190,7 +193,8 @@ export function Canvas() {
 
   const onPointerDown = (e: RPointerEvent) => {
     if (pinch.current) return;
-    const panButton = e.button === 1 || (e.button === 0 && (keys.space || e.pointerType === "touch"));
+    // Правая или средняя кнопка — двигать холст; пробел + левая и касание пальцем — тоже.
+    const panButton = e.button === 2 || e.button === 1 || (e.button === 0 && (keys.space || e.pointerType === "touch"));
     if (panButton) {
       e.preventDefault();
       startPan(e);
