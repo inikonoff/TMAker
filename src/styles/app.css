@@ -73,9 +73,10 @@ textarea {
 
 /* ---------- Каркас ---------- */
 .app {
+  position: relative;
   display: grid;
   grid-template-rows: 52px 1fr;
-  grid-template-columns: 240px 1fr 280px;
+  grid-template-columns: min(var(--left-panel-width), 35vw) minmax(0, 1fr) min(var(--right-panel-width), 35vw);
   grid-template-areas:
     "top top top"
     "left main right";
@@ -83,7 +84,7 @@ textarea {
 }
 
 .app.run {
-  grid-template-columns: 240px 1fr 0;
+  grid-template-columns: min(var(--left-panel-width), 35vw) minmax(0, 1fr) 0;
 }
 
 .topbar {
@@ -113,6 +114,37 @@ textarea {
 .panel.right {
   grid-area: right;
   border-left: 1px solid var(--line);
+}
+
+.panel-resize {
+  position: absolute;
+  grid-area: main;
+  inset-block: 0;
+  width: 10px;
+  z-index: 6;
+  cursor: col-resize;
+  touch-action: none;
+  user-select: none;
+}
+
+.panel-resize.left {
+  left: -5px;
+}
+
+.panel-resize.right {
+  right: -5px;
+}
+
+.panel-resize::after {
+  content: "";
+  position: absolute;
+  inset: 0 4px;
+}
+
+.panel-resize:hover::after,
+.panel-resize:active::after,
+.panel-resize:focus-visible::after {
+  background: var(--accent);
 }
 
 .main {
@@ -712,6 +744,10 @@ input[type="range"] {
 }
 
 @media (max-width: 900px) {
+  .panel-resize {
+    display: none;
+  }
+
   .app,
   .app.run {
     grid-template-columns: 1fr;
